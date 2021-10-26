@@ -15,4 +15,4 @@ class ImplicationTest(private val precondition: Test, private val mainTest: Test
         val result = mainTest.getResult(resultReader)
         return TestResult(this, true, result.engineOutput)
     }
-}
+}   

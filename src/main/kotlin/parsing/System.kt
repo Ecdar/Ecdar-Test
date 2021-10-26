@@ -151,7 +151,7 @@ class Conjunction : System {
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
     override val depth: Int
-        get() = 1 + (this.children.map { it.depth }.max() ?: 0)
+        get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 
@@ -246,7 +246,7 @@ class Composition : System {
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
     override val depth: Int
-        get() = 1 + (this.children.map { it.depth }.max() ?: 0)
+        get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 

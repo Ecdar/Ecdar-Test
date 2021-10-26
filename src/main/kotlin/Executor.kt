@@ -1,65 +1,69 @@
+import EcdarProtoBuf.ComponentProtos
+import EcdarProtoBuf.EcdarBackendGrpc
+import EcdarProtoBuf.QueryProtos
+import io.grpc.ManagedChannelBuilder
 import parsing.EngineConfiguration
 import tests.Test
-import java.io.IOException
+import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+
 
 class Executor(val engineConfig: EngineConfiguration) {
+    private val numChannels = 2
+    val ports = (0 until numChannels).map { "5${it.toString().padStart(3, '0')}" } //1000 - 100n
+
+    private val channels = ports.map {
+        ManagedChannelBuilder.forTarget("127.0.0.1:$it").usePlaintext().build() }
+    private val stubs = channels.map {EcdarBackendGrpc.newBlockingStub(it)}
+    var queryId = AtomicInteger(0)
+    var usedStubs = (0 until numChannels).map{ ReentrantLock() }
 
     fun runTest(test: Test): TestResult {
-        val reader = runToReader(test)
-        return getTestResult(test, reader)
-    }
 
-    private fun runToReader(test: Test): QueryResultReader {
-        val command = engineConfig.getCommand(test.projectPath, test.query)
-        val stdout = runCommand(command)!!
+        if(test.query.startsWith("consistency")) throw Exception("Cannot handle consistency")
+
+        val queryId = queryId.getAndAdd(1)
+        val stubId = queryId % numChannels
+
+        var testResult: TestResult? = null
+
+        while(!usedStubs[stubId].tryLock()){ }
+
         try {
-        return QueryResultReader(stdout)
-        } catch (e: Exception) {
-            throw Exception("Query: ${test.query} lead to unexpected modelchecker output.")
-        }
-    }
+            val componentUpdate = componentUpdateFromPath(test.projectPath)
 
-    private fun getTestResult(test: Test, reader: QueryResultReader): TestResult {
-        val result = test.getResult(reader)
-        result.engine = engineConfig.name
-        return result
-    }
+            stubs[stubId].updateComponents(componentUpdate)
 
-    private fun runCommand(command: String): String? {
+            val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
+            val result = stubs[stubId].sendQuery(query)
 
-        return try {
-            val parts = splitArguments(command)
-            val proc = ProcessBuilder(*parts.toTypedArray())
-                .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start()
-
-            val out = proc.inputStream.bufferedReader().readText()
-            proc.destroyForcibly()
-            out
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun splitArguments(command: String): ArrayList<String> {
-        val parts = ArrayList<String>()
-        val segments = command.split("\"".toRegex())
-        var isQuoted = false
-        for (segment in segments) {
-            if (segment == "")
-                continue
-
-            if (isQuoted) {
-                parts.add(segment)
-            } else {
-                parts.addAll(segment.trim().split("\\s".toRegex()))
+            if(result.hasError()) {
+                throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
             }
 
-            isQuoted = !isQuoted
+            val success = result.hasRefinement() && result.refinement.success
+            testResult = TestResult(test, success, QueryResult(test.query, ""))
         }
-        return parts
+        finally {
+            usedStubs[stubId].unlock()
+        }
+
+        return testResult!!
+    }
+
+    private fun componentUpdateFromPath(path: String) : QueryProtos.ComponentsUpdateRequest {
+        val file = File(path)
+        return if (File(path).isFile) { //If XML
+            val component = ComponentProtos.Component.newBuilder().setXml(file.readText()).build()
+            QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
+        } else { //If json (e.g directory)
+            val file = File(path.plus("/Components"))
+            val components = file.listFiles()!!//.filter { it.endsWith(".json") }
+                .map { ComponentProtos.Component.newBuilder().setJson(it.readText()).build() }
+            //throw Exception("Only ${components.size} comps")
+            QueryProtos.ComponentsUpdateRequest.newBuilder().addAllComponents(components).build()
+        }
     }
 
 }
