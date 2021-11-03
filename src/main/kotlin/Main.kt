@@ -8,13 +8,19 @@ import tests.Test
 import tests.testgeneration.addAllTests
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 fun main() {
+    val time = measureTimeMillis {
     val tests = generateTests()
 
     val results = executeTests(tests)
 
     writeJsonToFile("last_run.json", results)
+    }
+
+    println("Done in ${time/1000} seconds")
 }
 
 private fun generateTests(): Collection<Test> {
@@ -31,6 +37,7 @@ private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
         tests.parallelStream().forEach {
             results.add(executor.runTest(it))
         }
+        engine.terminate()
     }
     return results
 }
