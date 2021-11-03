@@ -1,4 +1,5 @@
 import facts.RelationLoader
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -44,8 +45,7 @@ class GeneratedTests {
     }
 
     private fun createJUnitTest(executor: Executor, test: Test): DynamicTest {
-        val command = executor.engineConfig.getCommand(test.projectPath, test.query)
-        val testName = "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.query}"
+        val testName = "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
         val testBody = Executable { assertTrue(executor.runTest(test).result, "Test failed: $testName") }
         return dynamicTest(testName, testBody)
     }
