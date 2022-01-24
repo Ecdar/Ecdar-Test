@@ -6,7 +6,7 @@ import parsing.System
 abstract class Proof {
     var contribution: Int = 0
 
-    open val maxContribution: Int = Int.MAX_VALUE
+    open val maxContribution: Int = 10000
 
     fun reset() {
         contribution = 0
@@ -16,7 +16,8 @@ abstract class Proof {
         if (contribution < maxContribution) {
             search(component, ctx)
 
-            contribution += ctx.proofContributions.getOrDefault(this, 0)
+            contribution += ctx.contribution
+            ctx.contribution = 0
         }
     }
 

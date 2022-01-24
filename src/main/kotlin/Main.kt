@@ -14,11 +14,12 @@ import kotlin.system.measureTimeMillis
 
 fun main() {
     val time = measureTimeMillis {
-    val tests = generateTests()
+        val tests = generateTests()
+        println("Found ${tests.size} tests")
 
-    val results = executeTests(tests)
+        val results = executeTests(tests)
 
-    writeJsonToFile("last_run.json", results)
+        writeJsonToFile("last_run.json", results)
     }
 
     println()

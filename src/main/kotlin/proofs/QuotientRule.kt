@@ -5,10 +5,10 @@ import parsing.Quotient
 import parsing.System
 
 class QuotientRule : Proof() {
-    override val maxContribution: Int = 200
+    override val maxContribution: Int = 50
     //Quotient rule: S || T ≤ X => S ≤ X \ T
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
-        val SCT = component
+        val SCT = component // S || T
         if (SCT is Composition) {
             val composition = SCT.children
             if (composition.size<2) return
@@ -23,7 +23,7 @@ class QuotientRule : Proof() {
                 }
 
                 for (X in SCT.thisRefines) {
-                    val XQT = ctx.addNewComponent(Quotient(X, T))
+                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \ T
 
                     if (S.refines(XQT)) {
                         ctx.setDirty(XQT, this)

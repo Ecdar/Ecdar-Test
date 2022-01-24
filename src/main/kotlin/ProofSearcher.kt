@@ -47,6 +47,7 @@ class ProofSearcher {
             iteration++
         }
 
+        println("${allComponents.size} components identified")
         theorems.forEach { println("Proof ${it.javaClass.simpleName} added ${it.contribution} relations") }
 
         return allComponents
@@ -78,11 +79,11 @@ class ProofSearcher {
         val currentIteration: Int
     ) {
         var newlyMarkedComponents = HashSet<System>()
-        var proofContributions = HashMap<Proof, Int>()
+        var contribution = 0
 
         fun setDirty(component: System, source: Proof) {
             newlyMarkedComponents.add(component)
-            proofContributions[source] = proofContributions.getOrDefault(source, 0) + 1
+            contribution += 1
         }
 
         fun addNewComponent(component: System): System {
