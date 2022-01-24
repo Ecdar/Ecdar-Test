@@ -1,12 +1,15 @@
 import EcdarProtoBuf.ComponentProtos
 import EcdarProtoBuf.EcdarBackendGrpc
 import EcdarProtoBuf.QueryProtos
+import io.grpc.StatusRuntimeException
 import io.grpc.ManagedChannelBuilder
+import io.grpc.Status
 import parsing.EngineConfiguration
 import tests.MultiTest
 import tests.SingleTest
 import tests.Test
 import java.io.File
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
@@ -43,9 +46,18 @@ class Executor(val engineConfig: EngineConfiguration) {
             try {
                 val componentUpdate = componentUpdateFromPath(test.projectPath)
 
-                stubs[stubId].updateComponents(componentUpdate)
+                try {
+                    stubs[stubId].updateComponents(componentUpdate)
+                }
+                catch (e: StatusRuntimeException) {
+                    if (e.status.code == Status.Code.UNAVAILABLE) {
+                        engineConfig.reset(stubId);
+                        stubs[stubId].updateComponents(componentUpdate)
+                    }
+                }
+
                 val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                val result = stubs[stubId].sendQuery(query)
+                val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)
 
                 if (result.hasError()) {
                     throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
@@ -54,7 +66,8 @@ class Executor(val engineConfig: EngineConfiguration) {
                 success = (result.hasRefinement() && result.refinement.success)
                         || (result.hasConsistency() && result.consistency.success)
                         || (result.hasDeterminism() && result.determinism.success)
-            } finally {
+            }
+            finally {
                 usedStubs[stubId].unlock()
             }
 
