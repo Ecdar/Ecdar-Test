@@ -4,6 +4,7 @@ import QueryResultReader
 import TestResult
 
 abstract class Test(val testSuite: String, val projectPath: String) {
+    val type = this.javaClass.simpleName
     abstract fun queries(): List<String>
 }
 
