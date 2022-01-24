@@ -5,7 +5,7 @@ import parsing.Composition
 import parsing.Conjunction
 import parsing.System
 
-class ContextSwitch : Proof {
+class ContextSwitch : Proof() {
     // A <= B and B <= A imply C[A] == C[B] (A can be replaced by B in any context)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         val equal = component.thisRefines.intersect(component.refinesThis)
@@ -19,7 +19,7 @@ class ContextSwitch : Proof {
                         other.refinesThis.addAll(component.refinesThis) or
                         other.notRefinesThis.addAll(component.notRefinesThis)
 
-                if (changed) ctx.setDirty(other)
+                if (changed) ctx.setDirty(other, this)
 
                 for (parent in component.parents.toList()) {
                     replace(component, other, parent, ctx)
@@ -54,9 +54,9 @@ class ContextSwitch : Proof {
                 newParent.notRefinesThis.addAll(parent.notRefinesThis) or
                 newParent.thisNotRefines.addAll(parent.thisNotRefines)
 
-        if (changed) ctx.setDirty(newParent)
+        if (changed) ctx.setDirty(newParent, this)
 
-        if (parent.thisRefines.add(newParent) or parent.refinesThis.add(newParent)) ctx.setDirty(parent)
+        if (parent.thisRefines.add(newParent) or parent.refinesThis.add(newParent)) ctx.setDirty(parent, this)
 
         //Avoid infinitely many tests by only allowing trees of height 10
         //TODO: determine how high the constant feasibly should be

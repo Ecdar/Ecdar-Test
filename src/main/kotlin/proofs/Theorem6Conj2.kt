@@ -4,7 +4,7 @@ import ProofSearcher
 import parsing.Conjunction
 import parsing.System
 
-class Theorem6Conj2 : Proof {
+class Theorem6Conj2 : Proof() {
     //HSCC.Theorem6.part2, locally consistent S, U and T sharing the same alphabet: (U <= S) and (U <= T) implies U <= (S && T)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         if (component.thisRefines.size > 1) {
@@ -18,8 +18,8 @@ class Theorem6Conj2 : Proof {
                         newComp = ctx.addNewComponent(newComp)
 
                         if (component.refines(newComp)) {
-                            ctx.setDirty(newComp)
-                            ctx.setDirty(component)
+                            ctx.setDirty(newComp, this)
+                            ctx.setDirty(component, this)
                         }
                     }
                 }

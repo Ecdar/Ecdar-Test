@@ -35,6 +35,8 @@ class ProofSearcher {
 
         var iteration = 0
 
+        theorems.forEach { it.reset() }
+
         while (dirtyComponents.isNotEmpty()) {
             println("Dirty components/components: ${dirtyComponents.count()}/${allComponents.count()} it: $iteration")
 
@@ -45,6 +47,8 @@ class ProofSearcher {
             iteration++
         }
 
+        theorems.forEach { println("Proof ${it.javaClass.simpleName} added ${it.contribution} relations") }
+
         return allComponents
     }
 
@@ -54,7 +58,7 @@ class ProofSearcher {
 
         for (theorem in theorems) {
             for (comp in iterationContext.dirtyComponents) {
-                theorem.search(comp, iterationContext)
+                theorem.doSearch(comp, iterationContext)
             }
             analytics.forEach { analytic ->
                 analytic.recordProofIteration(
@@ -74,9 +78,11 @@ class ProofSearcher {
         val currentIteration: Int
     ) {
         var newlyMarkedComponents = HashSet<System>()
+        var proofContributions = HashMap<Proof, Int>()
 
-        fun setDirty(component: System) {
+        fun setDirty(component: System, source: Proof) {
             newlyMarkedComponents.add(component)
+            proofContributions[source] = proofContributions.getOrDefault(source, 0) + 1
         }
 
         fun addNewComponent(component: System): System {
