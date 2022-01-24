@@ -12,6 +12,10 @@ import java.util.concurrent.locks.ReentrantLock
 
 
 class Executor(val engineConfig: EngineConfiguration) {
+
+    init {
+        engineConfig.initialize()
+    }
     private val numProcesses = engineConfig.processes
 
     private val channels = engineConfig.addresses.map {
