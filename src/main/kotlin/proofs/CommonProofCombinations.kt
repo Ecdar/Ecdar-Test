@@ -13,6 +13,7 @@ fun ProofSearcher.addRefinementProofs(): ProofSearcher {
         .addProof(SelfRefinement())
         .addProof(Theorem6Conj1())
         .addProof(Theorem6Conj2())
+        .addProof(QuotientRule())
 }
 
 fun ProofSearcher.addConsistencyProofs(): ProofSearcher {

@@ -90,6 +90,65 @@ class Component(val prefix: String, val comp: String) : System {
 
 }
 
+
+class Quotient : System {
+    constructor(T: System, S: System) {
+        assert(T.getProjectFolder() == S.getProjectFolder())
+        children.add(T)
+        children.add(S)
+        this.T = T
+        this.S = S
+        setActions()
+    }
+
+    private fun setActions() {
+        inputs = T.inputs.union(S.outputs).toHashSet()
+        outputs = T.outputs.intersect(S.outputs).toHashSet()
+    }
+
+    var T : System
+    var S : System
+
+    override var inputs = HashSet<String>()
+    override var outputs = HashSet<String>()
+    override var children = HashSet<System>()
+    override var refinesThis = HashSet<System>()
+    override var thisRefines = HashSet<System>()
+    override var notRefinesThis = HashSet<System>()
+    override var thisNotRefines = HashSet<System>()
+    override var parents = HashSet<System>()
+    override val depth: Int
+        get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
+
+
+    override fun sameAs(other: System): Boolean {
+        if (other is Quotient) {
+            return S == other.S && T == other.T
+        }
+        return false
+    }
+
+    override fun getProjectFolder(): String {
+        val it = children.iterator()
+        val folderPath = it.next().getProjectFolder()
+        for (system in it) {
+            if (folderPath != system.getProjectFolder()) {
+                throw Exception("Children have different projects folders")
+            }
+        }
+        return folderPath
+    }
+
+    override fun getName(): String {
+        return "(${T.getName()} // ${S.getName()})"
+    }
+
+    override fun toString(): String {
+        return "($T // $S)"
+    }
+}
+
 class Conjunction : System {
     constructor(left: System, right: System) {
         assert(left.getProjectFolder() == right.getProjectFolder())
