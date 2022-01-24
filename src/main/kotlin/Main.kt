@@ -8,8 +8,9 @@ import tests.Test
 import tests.testgeneration.addAllTests
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
-import kotlin.time.measureTime
 
 fun main() {
     val time = measureTimeMillis {
@@ -20,7 +21,8 @@ fun main() {
     writeJsonToFile("last_run.json", results)
     }
 
-    println("Done in ${time/1000} seconds")
+    println()
+    println("Done in ${time / 1000} seconds")
 }
 
 private fun generateTests(): Collection<Test> {
@@ -30,16 +32,76 @@ private fun generateTests(): Collection<Test> {
 
 private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
     val engines = parseEngineConfigurations()
-    val results = ConcurrentLinkedQueue<TestResult>()
+    val fullResults = ArrayList<TestResult>()
 
     for (engine in engines) {
+        val results = ConcurrentLinkedQueue<TestResult>()
+        val numTests = tests.size
+        val progress = AtomicInteger(0)
+        println()
+        println("Running $numTests tests on engine \"${engine.name}\"")
+
         val executor = Executor(engine)
-        tests.parallelStream().forEach {
-            results.add(executor.runTest(it))
+
+        val t = printProgressbar(progress, numTests)
+
+        val time = measureTimeMillis {
+            tests.parallelStream().forEach {
+                val start = System.currentTimeMillis()
+                val result = try {
+                    executor.runTest(it)
+                } catch (e: Throwable) {
+                    val r = TestResult(it, null)
+                    r.exception = e.message
+                    r
+                }
+
+                result.time = System.currentTimeMillis() - start
+                result.engine = engine.name
+
+                results.add(result)
+
+                progress.getAndAdd(1)
+            }
+            engine.terminate()
         }
-        engine.terminate()
+
+        t.join()
+
+        var passed = 0
+        var failed = 0
+        var unknown = 0
+
+        results.forEach { when(it.result) {
+            true ->  passed++
+            false -> failed++
+            null -> unknown++
+            }
+        }
+
+        println()
+        println("${numTests-passed}/$numTests tests failed (${(numTests-passed)*100/numTests}%)" +
+                (if (unknown == 0) "" else " ($unknown due to exceptions)") +
+                " in ${time/1000} seconds")
+
+
+        fullResults.addAll(results)
     }
-    return results
+    return fullResults
+}
+
+private fun printProgressbar(progress: AtomicInteger, max: Int) : Thread {
+    return thread(start = true, isDaemon = true) {
+        val anim = "|/-\\"
+        do  {
+            val p = progress.get()
+            val x = p*100 / max
+
+            val data = "\r" + anim[x % anim.length] + " $x% [$p/$max]"
+            System.out.write(data.toByteArray())
+            Thread.sleep(100)
+        } while(p != max)
+    }
 }
 
 private fun writeJsonToFile(filePath: String, results: Any) {
