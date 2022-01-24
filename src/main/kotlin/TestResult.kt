@@ -2,9 +2,10 @@ import tests.Test
 
 class TestResult(
     val test: Test,
-    val result: Boolean
+    val result: Boolean?
 ) {
-    val timestamp = System.currentTimeMillis() / 1000
+    var time: Long? = null
     var engine: String? = null
+    var exception: String? = null
 }
 

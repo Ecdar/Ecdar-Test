@@ -17,6 +17,10 @@ class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
         val pre = results[0]
         val post = results[0]
 
+        if (pre.result==null) {
+            return TestResult(this, null)
+        }
+
         if (pre.result) {
             return post
         }
