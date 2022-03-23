@@ -4,6 +4,7 @@ import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
 import parsing.parseEngineConfigurations
 import proofs.addAllProofs
+import proofs.addRefinementProofs
 import tests.Test
 import tests.testgeneration.addAllTests
 import java.io.File
@@ -16,7 +17,7 @@ fun main() {
     val time = measureTimeMillis {
         val tests = generateTests()
         println("Found ${tests.size} tests")
-
+        //return@measureTimeMillis
         val results = executeTests(tests)
 
         writeJsonToFile("last_run.json", results)
@@ -28,6 +29,7 @@ fun main() {
 
 private fun generateTests(): Collection<Test> {
     val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
+    //ProofLimiter(3).limit(allRelations)
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
 

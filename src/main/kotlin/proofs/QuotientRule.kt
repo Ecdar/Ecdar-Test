@@ -5,8 +5,8 @@ import parsing.Quotient
 import parsing.System
 
 class QuotientRule : Proof() {
-    override val maxContribution: Int = 50
-    //Quotient rule: S || T ≤ X => S ≤ X \ T
+    override val maxContribution: Int = 1000
+    //Quotient rule: S || T ≤ X iff? S ≤ X \\ T
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         val SCT = component // S || T
         if (SCT is Composition) {
@@ -23,9 +23,17 @@ class QuotientRule : Proof() {
                 }
 
                 for (X in SCT.thisRefines) {
-                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \ T
+                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
 
                     if (S.refines(XQT)) {
+                        ctx.setDirty(XQT, this)
+                        ctx.setDirty(S, this)
+                    }
+                }
+                for (X in SCT.thisNotRefines) {
+                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
+
+                    if (S.notRefines(XQT)) {
                         ctx.setDirty(XQT, this)
                         ctx.setDirty(S, this)
                     }

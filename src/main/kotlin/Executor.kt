@@ -9,6 +9,7 @@ import tests.MultiTest
 import tests.SingleTest
 import tests.Test
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -40,7 +41,13 @@ class Executor(val engineConfig: EngineConfiguration) {
             val success: Boolean?
 
             while (!usedStubs[stubId].tryLock()) {
-                stubId = (stubId + 1) % numProcesses
+                stubId += 1
+
+                //Sleep for a bit when we've tried all stubs
+                if (stubId >= numProcesses) {
+                    Thread.sleep(100)
+                    stubId = 0
+                }
             }
 
             try {
@@ -51,13 +58,17 @@ class Executor(val engineConfig: EngineConfiguration) {
                 }
                 catch (e: StatusRuntimeException) {
                     if (e.status.code == Status.Code.UNAVAILABLE) {
-                        engineConfig.reset(stubId);
+                        engineConfig.reset(stubId)
                         stubs[stubId].updateComponents(componentUpdate)
                     }
                 }
+                catch (e: IOException) {
+                    engineConfig.reset(stubId)
+                    stubs[stubId].updateComponents(componentUpdate)
+                }
 
                 val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)
+                val result = stubs[stubId].withDeadlineAfter(10, TimeUnit.SECONDS).sendQuery(query)
 
                 if (result.hasError()) {
                     throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")

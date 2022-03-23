@@ -6,7 +6,7 @@ import parsing.System
 abstract class Proof {
     var contribution: Int = 0
 
-    open val maxContribution: Int = 10000
+    open val maxContribution: Int = 20000
 
     fun reset() {
         contribution = 0

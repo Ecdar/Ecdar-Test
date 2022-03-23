@@ -7,8 +7,8 @@ fun TestGenerator.addAllTests(): TestGenerator {
         .addRefinementTests()
         .addConsistencyTests()
         .addImpliedRefinementTests()
-        .addConjunctionIdentityTests()
-        .addConjunctionCommutativeTests()
+        //.addConjunctionIdentityTests()
+        //.addConjunctionCommutativeTests()
 
     return this
 }

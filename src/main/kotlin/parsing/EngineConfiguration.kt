@@ -28,6 +28,7 @@ data class EngineConfiguration(
             procs = ports.map{
                 processFromPort(it)
             }.toMutableList()
+            Thread.sleep(3_000)
         }
     }
 
@@ -37,8 +38,8 @@ data class EngineConfiguration(
                 .replace("{port}", port.toString())
                 .replace("{ip}", ip)
         )
-            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .redirectOutput(ProcessBuilder.Redirect.appendTo(File("Engine-$name-log.txt")))
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
         pb.directory(File(path).parentFile) // Set the working directory for dll location
 
         while (true) {
@@ -59,8 +60,10 @@ data class EngineConfiguration(
     }
 
     fun reset(id: Int) {
-        procs!![id].destroyForcibly().waitFor()
+        procs!![id].destroyForcibly()
+        Thread.sleep(2_000)
         procs!![id] = processFromPort(ports[id])
+        Thread.sleep(5_000)
     }
 
     fun getCommand(folder: String, query: String): String {

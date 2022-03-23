@@ -14,6 +14,7 @@ interface System {
     var thisNotRefines: HashSet<System>
     var parents: HashSet<System>
     val depth: Int
+    val components: Int
     var isLocallyConsistent: Optional<Boolean>
     var inputs: HashSet<String>
     var outputs: HashSet<String>
@@ -66,6 +67,7 @@ class Component(val prefix: String, val comp: String) : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 0
+    override var components = 1
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 
@@ -119,6 +121,8 @@ class Quotient : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+    override val components: Int
+        get() = T.components + S.components
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 
@@ -211,6 +215,8 @@ class Conjunction : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+    override val components: Int
+        get() = children.sumOf { it.components }
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 
@@ -304,8 +310,10 @@ class Composition : System {
     override var notRefinesThis = HashSet<System>()
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
+    override val components: Int
+        get() = children.sumOf { it.components }
     override val depth: Int
-        get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+        get() = 1 + (this.children.maxOfOrNull { it.depth } ?: 0)
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
 

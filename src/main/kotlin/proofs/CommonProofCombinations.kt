@@ -16,6 +16,10 @@ fun ProofSearcher.addRefinementProofs(): ProofSearcher {
         .addProof(QuotientRule())
 }
 
+fun ProofSearcher.addQuotientProofs() : ProofSearcher {
+    return this.addProof(QuotientRule())
+}
+
 fun ProofSearcher.addConsistencyProofs(): ProofSearcher {
     return this.addProof(ConsistentRefinements())
         .addProof(ConsistentCompositions())

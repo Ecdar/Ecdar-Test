@@ -177,3 +177,4 @@ locally-consistent: Cons.G18
 not-locally-consistent: Cons.G19
 locally-consistent: Cons.G20
 locally-consistent: Cons.G21
+not-locally-consistent: Cons.G23

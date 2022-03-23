@@ -3,9 +3,11 @@ package proofs
 import ProofSearcher
 import parsing.Composition
 import parsing.Conjunction
+import parsing.Quotient
 import parsing.System
 
 class ContextSwitch : Proof() {
+    override val maxContribution: Int = 4000
     // A <= B and B <= A imply C[A] == C[B] (A can be replaced by B in any context)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         val equal = component.thisRefines.intersect(component.refinesThis)
@@ -31,7 +33,7 @@ class ContextSwitch : Proof() {
 
 
     private fun replace(oldChild: System, newChild: System, parent: System, ctx: ProofSearcher.IterationContext) {
-        assert(parent is Conjunction || parent is Composition)
+        assert(parent is Conjunction || parent is Composition || parent is Quotient)
 
         val children = parent.children.toHashSet()
         children.remove(oldChild)
@@ -41,11 +43,32 @@ class ContextSwitch : Proof() {
 
         val parentClone: System
 
-        parentClone = if (parent is Conjunction) {
-            Conjunction(children)
-        } else /* if (parent is Composition) */ {
-            Composition(children)
+        when (parent) {
+            is Quotient -> {
+                val S = if (parent.S == oldChild) {
+                    newChild
+                } else {
+                    parent.S
+                }
+                val T = if (parent.T == oldChild) {
+                    newChild
+                } else {
+                    parent.T
+                }
+
+                parentClone = Quotient(S, T)
+            }
+            is Conjunction -> {
+                parentClone = Conjunction(children)
+            }
+            is Composition -> {
+                parentClone = Composition(children)
+            }
+            else -> {
+                return
+            }
         }
+
 
         val newParent = ctx.addNewComponent(parentClone)
 
@@ -58,13 +81,12 @@ class ContextSwitch : Proof() {
 
         if (parent.thisRefines.add(newParent) or parent.refinesThis.add(newParent)) ctx.setDirty(parent, this)
 
-        //Avoid infinitely many tests by only allowing trees of height 10
-        //TODO: determine how high the constant feasibly should be
-        if (parent.depth < 10) {
+
+        /* //This is done in the next iteration instead
             for (parpar in parent.parents) {
                 replace(parent, newParent, parpar, ctx)
             }
-        }
+        */
 
     }
 }
