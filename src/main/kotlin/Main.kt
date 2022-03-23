@@ -4,6 +4,7 @@ import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
 import parsing.parseEngineConfigurations
 import proofs.addAllProofs
+import proofs.addQuotientProofs
 import proofs.addRefinementProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -28,7 +29,7 @@ fun main() {
 }
 
 private fun generateTests(): Collection<Test> {
-    val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
+    val allRelations = ProofSearcher().addQuotientProofs().findNewRelations(RelationLoader.relations)
     //ProofLimiter(3).limit(allRelations)
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
