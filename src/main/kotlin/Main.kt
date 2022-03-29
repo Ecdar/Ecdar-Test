@@ -55,7 +55,7 @@ private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
                 val result = try {
                     executor.runTest(it)
                 } catch (e: Throwable) {
-                    val r = TestResult(it, null)
+                    val r = TestResult(it, ResultType.EXCEPTION, ResultType.NON_EXCEPTION)
                     r.exception = e.message
                     r
                 }
@@ -77,9 +77,8 @@ private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
         var unknown = 0
 
         results.forEach { when(it.result) {
-            true ->  passed++
-            false -> failed++
-            null -> unknown++
+            it.expected ->  passed++
+            else -> if (it.result == ResultType.EXCEPTION) unknown++ else failed++
             }
         }
 

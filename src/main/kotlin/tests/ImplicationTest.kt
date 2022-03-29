@@ -15,16 +15,16 @@ class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
         assert(results.size == 2)
 
         val pre = results[0]
-        val post = results[0]
+        val post = results[1]
 
-        if (pre.result==null) {
-            return TestResult(this, null)
+        if (pre.result == ResultType.EXCEPTION) {
+            return TestResult(this, ResultType.EXCEPTION, post.expected)
         }
 
-        if (pre.result) {
+        if (pre.result == pre.expected) {
             return post
         }
 
-        return TestResult(this, true)
+        return TestResult(this, ResultType.NON_EXCEPTION, ResultType.NON_EXCEPTION)
     }
 }   
