@@ -70,6 +70,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                 val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
                 val result = stubs[stubId].withDeadlineAfter(10, TimeUnit.SECONDS).sendQuery(query)
 
+
                 if (result.hasError()) {
                     throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
                 }
