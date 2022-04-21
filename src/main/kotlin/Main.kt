@@ -4,13 +4,13 @@ import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
 import parsing.parseEngineConfigurations
 import proofs.addAllProofs
-import proofs.addRefinementProofs
 import tests.Test
 import tests.testgeneration.addAllTests
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
+import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
 
 fun main() {
@@ -18,9 +18,10 @@ fun main() {
         val tests = generateTests()
         println("Found ${tests.size} tests")
         //return@measureTimeMillis
+
         val results = executeTests(tests)
 
-        writeJsonToFile("last_run.json", results)
+        saveResults(results.toList())
     }
 
     println()
@@ -33,12 +34,16 @@ private fun generateTests(): Collection<Test> {
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
 
-private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
+class ResultContext(val result: TestResult,
+                    val engine: String,
+                    val version: String)
+
+private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
     val engines = parseEngineConfigurations()
-    val fullResults = ArrayList<TestResult>()
+    val fullResults = ArrayList<ResultContext>()
 
     for (engine in engines) {
-        val results = ConcurrentLinkedQueue<TestResult>()
+        val results = ConcurrentLinkedQueue<ResultContext>()
         val numTests = tests.size
         val progress = AtomicInteger(0)
         println()
@@ -50,19 +55,10 @@ private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
 
         val time = measureTimeMillis {
             tests.parallelStream().forEach {
-                val start = System.currentTimeMillis()
-                val result = try {
-                    executor.runTest(it)
-                } catch (e: Throwable) {
-                    val r = TestResult(it, ResultType.EXCEPTION, ResultType.NON_EXCEPTION)
-                    r.exception = e.message
-                    r
-                }
 
-                result.time = System.currentTimeMillis() - start
-                result.engine = engine.name
+                val result = executor.runTest(it)
 
-                results.add(result)
+                results.add(ResultContext(result, engine.name, engine.version))
 
                 progress.getAndAdd(1)
             }
@@ -75,15 +71,15 @@ private fun executeTests(tests: Collection<Test>): Iterable<TestResult> {
         var failed = 0
         var unknown = 0
 
-        results.forEach { when(it.result) {
-            it.expected ->  passed++
-            else -> if (it.result == ResultType.EXCEPTION) unknown++ else failed++
+        results.forEach { when(it.result.result) {
+            it.result.expected ->  passed++
+            else -> if (it.result.result == ResultType.EXCEPTION) unknown++ else failed++
             }
         }
 
         println()
-        println("${numTests-passed}/$numTests tests failed (${(numTests-passed)*100/numTests}%)" +
-                (if (unknown == 0) "" else " ($unknown due to exceptions)") +
+        println("${passed}/$numTests tests succeeded (${(passed*100.0/numTests).roundToInt()}%)" +
+                (if (unknown == 0) "" else " ($unknown failed due to exceptions)") +
                 " in ${time/1000} seconds")
 
 
@@ -103,6 +99,23 @@ private fun printProgressbar(progress: AtomicInteger, max: Int) : Thread {
             System.out.write(data.toByteArray())
             Thread.sleep(100)
         } while(p != max)
+    }
+}
+
+private fun saveResults(results: List<ResultContext>) {
+    for ((engine, tests) in results.groupBy { it.engine }) {
+        for ((version, versionResults) in tests.groupBy { it.version }) {
+            val path = "results/$engine/$version"
+            val dir = File(path)
+            dir.mkdirs()
+            //dir.lastModified()
+            var fileNumber = dir.listFiles()!!.size
+            while (File("$path/$fileNumber.json").exists()) {
+                fileNumber++
+            }
+
+            writeJsonToFile("$path/$fileNumber.json", versionResults.map { it.result })
+        }
     }
 }
 

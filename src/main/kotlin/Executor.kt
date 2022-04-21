@@ -31,61 +31,90 @@ class Executor(val engineConfig: EngineConfiguration) {
     var usedStubs = (0 until numProcesses).map { ReentrantLock() }
 
     fun runTest(test: Test): TestResult {
-        if (test is MultiTest) {
-            return test.getResult(test.tests.map { runTest(it) })
-        } else if (test is SingleTest) {
-
-            val queryId = queryId.getAndAdd(1)
-            var stubId = 0
-
-            val success: Boolean?
-
-            while (!usedStubs[stubId].tryLock()) {
-                stubId += 1
-
-                //Sleep for a bit when we've tried all stubs
-                if (stubId >= numProcesses) {
-                    Thread.sleep(100)
-                    stubId = 0
-                }
-            }
-
-            try {
-                val componentUpdate = componentUpdateFromPath(test.projectPath)
-
-                try {
-                    stubs[stubId].updateComponents(componentUpdate)
-                }
-                catch (e: StatusRuntimeException) {
-                    if (e.status.code == Status.Code.UNAVAILABLE) {
-                        engineConfig.reset(stubId)
-                        stubs[stubId].updateComponents(componentUpdate)
+        try {
+            if (test is MultiTest) {
+                val resses = test.tests.map { runTest(it) }
+                val res = test.getResult(resses)
+                var time: Double? = 0.0
+                resses.forEach {
+                    if (it.time == null) {
+                        time = null
+                        return@forEach
+                    } else {
+                        time = time?.plus(it.time!!)
                     }
                 }
-                catch (e: IOException) {
-                    engineConfig.reset(stubId)
-                    stubs[stubId].updateComponents(componentUpdate)
+                res.time = time
+                return res
+            } else if (test is SingleTest) {
+
+                val queryId = queryId.getAndAdd(1)
+                var stubId = 0
+
+                val success: Boolean?
+
+                while (!usedStubs[stubId].tryLock()) {
+                    stubId += 1
+
+                    //Sleep for a bit when we've tried all stubs
+                    if (stubId >= numProcesses) {
+                        Thread.sleep(100)
+                        stubId = 0
+                    }
+                }
+                val start = System.currentTimeMillis()
+
+                try {
+                    val componentUpdate = componentUpdateFromPath(test.projectPath)
+
+                    try {
+                        stubs[stubId].updateComponents(componentUpdate)
+                    }
+                    catch (e: StatusRuntimeException) {
+                        if (e.status.code == Status.Code.UNAVAILABLE) {
+                            resetStub(stubId)
+                            stubs[stubId].withWaitForReady().updateComponents(componentUpdate)
+                        }
+                    }
+                    catch (e: IOException) {
+                        resetStub(stubId)
+                        stubs[stubId].withWaitForReady().updateComponents(componentUpdate)
+                    }
+
+                    val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
+                    val result = stubs[stubId].withDeadlineAfter(10, TimeUnit.SECONDS).sendQuery(query)
+
+
+                    if (result.hasError()) {
+                        throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
+                    }
+
+                    success = (result.hasRefinement() && result.refinement.success)
+                            || (result.hasConsistency() && result.consistency.success)
+                            || (result.hasDeterminism() && result.determinism.success)
+                            || (result.hasQuery() && result.query.query.lowercase().startsWith("true"))
+                }
+                finally {
+                    usedStubs[stubId].unlock()
                 }
 
-                val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                val result = stubs[stubId].withDeadlineAfter(10, TimeUnit.SECONDS).sendQuery(query)
-
-
-                if (result.hasError()) {
-                    throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
-                }
-
-                success = (result.hasRefinement() && result.refinement.success)
-                        || (result.hasConsistency() && result.consistency.success)
-                        || (result.hasDeterminism() && result.determinism.success)
+                val res = test.getResult(success!!)
+                res.time = (System.currentTimeMillis() - start).toDouble()
+                return res
             }
-            finally {
-                usedStubs[stubId].unlock()
+        } catch (e: Throwable) {
+            if (test is MultiTest) {
+                throw Exception("Did not except MultiTest to throw error $e")
             }
-
-            return test.getResult(success!!)
+            val r = TestResult(test.toSingleTest(), ResultType.EXCEPTION, ResultType.NON_EXCEPTION, listOf())
+            r.exception = e.toString()
+            return r
         }
         throw Exception("Cannot execute test of type ${test.javaClass.name}")
+    }
+
+    private fun resetStub(stubId: Int) {
+        engineConfig.reset(stubId)
     }
 
     private fun componentUpdateFromPath(path: String): QueryProtos.ComponentsUpdateRequest {

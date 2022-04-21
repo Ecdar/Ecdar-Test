@@ -1,3 +1,5 @@
+import com.beust.klaxon.Json
+import tests.SingleTest
 import tests.Test
 
 const val ANSI_RESET = "\u001B[0m"
@@ -38,12 +40,12 @@ enum class ResultType {
 
 
 class TestResult(
-    val test: Test,
-    val result: ResultType,
-    val expected: ResultType
+    @Json(index=7) val test: SingleTest,
+    @Json(index=4) val result: ResultType,
+    @Json(index=5) val expected: ResultType,
+    @Json(index=8) val _inner: List<TestResult>,
 ) {
-    var time: Long? = null
-    var engine: String? = null
-    var exception: String? = null
+    @Json(index=3) var time: Double? = null
+    @Json(index=6) var exception: String? = null
 }
 
