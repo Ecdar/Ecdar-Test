@@ -53,6 +53,11 @@ dependencies {
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     compileOnly "org.apache.tomcat:annotations-api:6.0.53"
 
+    // Plotting
+    implementation "org.jetbrains.lets-plot:lets-plot-kotlin-jvm:3.2.0"
+    implementation "org.slf4j:slf4j-simple:1.7.36"  // Enable logging to console
+
+
     // examples/advanced need this for JsonFormat
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 
