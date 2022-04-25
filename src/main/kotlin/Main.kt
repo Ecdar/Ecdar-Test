@@ -46,12 +46,13 @@ private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
         val results = ConcurrentLinkedQueue<ResultContext>()
         val numTests = tests.size
         val progress = AtomicInteger(0)
+        val failed_tests = AtomicInteger(0)
         println()
         println("Running $numTests tests on engine \"${engine.name}\"")
 
         val executor = Executor(engine)
 
-        val t = printProgressbar(progress, numTests)
+        val t = printProgressbar(progress, failed_tests, numTests)
 
         val time = measureTimeMillis {
             tests.parallelStream().forEach {
@@ -61,6 +62,14 @@ private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
                 results.add(ResultContext(result, engine.name, engine.version))
 
                 progress.getAndAdd(1)
+
+                if (result.result != result.expected) {
+                    if (engine.verbose == true && result.result != ResultType.EXCEPTION) {
+                        print("\r") // Replace the progress bar
+                        printTestResult(result)
+                    }
+                    failed_tests.getAndAdd(1)
+                }
             }
             engine.terminate()
         }
@@ -88,15 +97,17 @@ private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
     return fullResults
 }
 
-private fun printProgressbar(progress: AtomicInteger, max: Int) : Thread {
+private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {
     return thread(start = true, isDaemon = true) {
         val anim = "|/-\\"
         do  {
             val p = progress.get()
             val x = p*100 / max
 
-            val data = "\r" + anim[x % anim.length] + " $x% [$p/$max]"
-            System.out.write(data.toByteArray())
+            val f = failed.get()
+
+            val data = "\r${anim[x % anim.length]} $x% [$p/$max]" + if (f>0) {" $ANSI_RED$f tests failed$ANSI_RESET"} else {""}
+            print(data)
             Thread.sleep(100)
         } while(p != max)
     }

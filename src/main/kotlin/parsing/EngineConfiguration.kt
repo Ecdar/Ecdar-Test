@@ -16,11 +16,14 @@ data class EngineConfiguration (
     val enabled: Boolean,
     val name: String,
     val version: String,
-    @Json(name = "executablePath")
-    val path: String,
-    val parameterExpression: String,
+    @Json(name = "executablePath", serializeNull = false)
+    val path: String?,
+    @Json(serializeNull = false)
+    val parameterExpression: String?,
     val ip: String,
     val port: Int,
+    @Json(serializeNull = false)
+    val verbose: Boolean?,
     val processes: Int,
     val addresses: List<String> = (port until port + processes).map { "${ip}:$it" },
     val ports: List<Int> = (port until port + processes).toList(),
@@ -29,9 +32,11 @@ data class EngineConfiguration (
     var alive : AtomicBoolean = AtomicBoolean(true)
 
     fun initialize() {
-
-
         if (procs==null) {
+            if (isExternal()) {
+                println("Expecting external engine on address $ip:$port due to missing executable path and parameter expression in engine configuration...")
+                return
+            }
             procs = ports.map{
                 processFromPort(it)
             }.toMutableList()
@@ -56,14 +61,14 @@ data class EngineConfiguration (
 
     private fun processFromPort(port: Int): Process {
         val pb = ProcessBuilder(path,
-            parameterExpression
+            parameterExpression!!
                 .replace("{port}", port.toString())
                 .replace("{ip}", ip)
         )
             //.redirectOutput(ProcessBuilder.Redirect.appendTo(File("Engine-$name-log.txt")))
             .redirectOutput(ProcessBuilder.Redirect.DISCARD)
             .redirectError(ProcessBuilder.Redirect.INHERIT)
-        pb.directory(File(path).parentFile) // Set the working directory for dll location
+        pb.directory(File(path!!).parentFile) // Set the working directory for dll location
 
         while (true) {
             while(!isLocalPortFree(port)) {
@@ -95,6 +100,9 @@ data class EngineConfiguration (
     }
 
     fun terminate() {
+        if (isExternal()) {
+            return
+        }
         procs!!.forEach {
             destroy(it.toHandle())
         }
@@ -111,13 +119,16 @@ data class EngineConfiguration (
     }
 
     fun reset(id: Int) {
+        if (isExternal()) {
+            throw Exception("Tried to reset external engine process")
+        }
         //println("Resetting process $id")
         destroy(procs!![id].toHandle())
         procs!![id] = processFromPort(ports[id])
     }
 
-    fun getCommand(folder: String, query: String): String {
-        return "$path ${parameterExpression.replace("{input}", folder).replace("{query}", query)}"
+    fun isExternal(): Boolean {
+        return path == null || parameterExpression == null
     }
 
 }

@@ -5,14 +5,15 @@ Requires a configuration file `configuration.json` with information for each eng
 ```json
 [
     {
-         "name": "Reveaal",
-         "version": "Main",
-         "executablePath": "path/to/Reveaal.exe",
-         "parameterExpression" : "-p={ip}:{port}",
-         "ip": "127.0.0.1",
-         "port" : 7000,
-         "processes" : 8,
-         "enabled" : true
+        "name": "Reveaal",
+        "version": "Main",
+        "executablePath": "path/to/Reveaal.exe",
+        "parameterExpression" : "-p={ip}:{port}",
+        "ip": "127.0.0.1",
+        "port" : 7000,
+        "processes" : 8,
+        "enabled" : true,
+        "verbose": true
     },
     {
         "name": "J-Ecdar",
@@ -23,10 +24,20 @@ Requires a configuration file `configuration.json` with information for each eng
         "port" : 8000,
         "processes" : 8,
         "enabled" : false
+    },
+    {
+        "name": "External",
+        "version": "v1.0",
+        "ip": "127.0.0.1",
+        "port" : 9000,
+        "processes" : 1,
+        "enabled" : false
     }
  ]
 ```
-##Run Tests on Executable
+If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
+
+##Run Tests for Engine
 Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
 ```
 Found 5730 tests

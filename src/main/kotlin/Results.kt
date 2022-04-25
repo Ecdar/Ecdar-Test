@@ -67,22 +67,17 @@ fun printResults(file: String) {
     val operators = listOf("||", "//", "&&", "consistency:", "refinement:")
     val operatorFailedCounts = operators.associateWith { 0 }.toMutableMap()
     val operatorExceptionCounts = operators.associateWith { 0 }.toMutableMap()
+    val operatorSucceededCounts = operators.associateWith { 0 }.toMutableMap()
 
     results.forEach {
         if (it.result != it.expected) {
-            val testName = it.test.query
-
             if (prints<MAX_RESULTS_PRINTED) { // Print at most maxPrints times
-                println("Expected ${it.expected.colored()}, but was ${it.result.colored()} in $testName")
-                if (it.result == ResultType.EXCEPTION) {
-                    println("${ResultType.EXCEPTION.colored()}: ${it.exception}")
-                }
-
-                println("Rerun with arguments: \"${getInnerQueries(it).joinToString("; ")}\" -i ${it.test.projectPath} \n")
+                println()
+                printTestResult(it)
             }
 
             for (key in operators) {
-                if(testName.contains(key)) {
+                if(it.test.query.contains(key)) {
                     // If it was an exception we check which sub-query caused it.
                     if (it.result == ResultType.EXCEPTION) {
                         if (it._inner.isEmpty() || it._inner.any { it.result == ResultType.EXCEPTION && it.test.query.contains(key) }) {
@@ -96,6 +91,11 @@ fun printResults(file: String) {
 
             prints ++
         } else {
+            for (key in operators) {
+                if(it.test.query.contains(key)) {
+                    operatorSucceededCounts[key] = operatorSucceededCounts[key]!! + 1
+                }
+            }
             it.time?.let { times.add(it) }
         }
     }
@@ -121,8 +121,24 @@ fun printResults(file: String) {
         println("Operator ${usedExceptionOperators.joinToString(", ")} of $errored queries causing exceptions")
     }
 
+    val usedSucceededOperators = operatorSucceededCounts.toPercentages(succeded)
+    if (usedSucceededOperators.isNotEmpty()) {
+        println("Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
+    }
+
     println("\nMedian runtime of successful queries: ${median(times)} ms")
 }
+
+fun printTestResult(result: TestResult) {
+    val testName = result.test.query
+    println("Expected ${result.expected.colored()}, but was ${result.result.colored()} in $testName")
+    if (result.result == ResultType.EXCEPTION) {
+        println("${ResultType.EXCEPTION.colored()}: ${result.exception}")
+    }
+
+    println("Rerun with arguments: \"${getInnerQueries(result).joinToString("; ")}\" -i ${result.test.projectPath} \n")
+}
+
 fun getInnerQueries(result: TestResult) : List<String> {
     return if (result._inner.isEmpty()) {
         listOf(result.test.query)
