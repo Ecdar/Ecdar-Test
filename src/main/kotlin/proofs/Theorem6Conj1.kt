@@ -25,8 +25,9 @@ class Theorem6Conj1 : Proof() {
 
     private fun addNewConjunction(ctx: ProofSearcher.IterationContext, component: System, other: System) {
         val conj = ctx.addNewComponent(Conjunction(component, other))
-
-        setParentRefinesChildren(conj, ctx)
+        conj?.let{
+            setParentRefinesChildren(conj, ctx)
+        }
     }
 
     private fun setParentRefinesChildren(

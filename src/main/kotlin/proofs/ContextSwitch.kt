@@ -71,16 +71,16 @@ class ContextSwitch : Proof() {
 
 
         val newParent = ctx.addNewComponent(parentClone)
+        newParent?.let {
+            val changed = newParent.refinesThis.addAll(parent.refinesThis) or
+                    newParent.thisRefines.addAll(parent.thisRefines) or
+                    newParent.notRefinesThis.addAll(parent.notRefinesThis) or
+                    newParent.thisNotRefines.addAll(parent.thisNotRefines)
 
-        val changed = newParent.refinesThis.addAll(parent.refinesThis) or
-                newParent.thisRefines.addAll(parent.thisRefines) or
-                newParent.notRefinesThis.addAll(parent.notRefinesThis) or
-                newParent.thisNotRefines.addAll(parent.thisNotRefines)
+            if (changed) ctx.setDirty(newParent, this)
 
-        if (changed) ctx.setDirty(newParent, this)
-
-        if (parent.thisRefines.add(newParent) or parent.refinesThis.add(newParent)) ctx.setDirty(parent, this)
-
+            if (parent.thisRefines.add(newParent) or parent.refinesThis.add(newParent)) ctx.setDirty(parent, this)
+        }
 
         /* //This is done in the next iteration instead
             for (parpar in parent.parents) {

@@ -64,7 +64,7 @@ private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
                 progress.getAndAdd(1)
 
                 if (result.result != result.expected) {
-                    if (engine.verbose == true && result.result != ResultType.EXCEPTION) {
+                    if (engine.verbose == true) {
                         print("\r") // Replace the progress bar
                         printTestResult(result)
                     }

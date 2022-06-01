@@ -41,6 +41,7 @@ Uni.Spec <= Uni.Spec
 Uni.Machine3 <= Uni.Machine3
 Uni.Machine3 <= Uni.Machine
 Uni.Administration || Uni.Researcher || Uni.Machine <= Uni.Spec
+(Uni.HalfAdm1 && Uni.HalfAdm2) || Uni.Researcher || Uni.Machine </= Uni.Spec
 Uni.Administration || Uni.Researcher || Uni.Machine <=  Uni.Administration || Uni.Researcher || Uni.Machine
 Uni.HalfAdm1 && Uni.HalfAdm2 <= Uni.Adm2
 Uni.Adm2 <= Uni.HalfAdm1 && Uni.HalfAdm2

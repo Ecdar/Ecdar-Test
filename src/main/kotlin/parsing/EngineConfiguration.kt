@@ -67,7 +67,7 @@ data class EngineConfiguration (
         )
             //.redirectOutput(ProcessBuilder.Redirect.appendTo(File("Engine-$name-log.txt")))
             .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
         pb.directory(File(path!!).parentFile) // Set the working directory for dll location
 
         while (true) {

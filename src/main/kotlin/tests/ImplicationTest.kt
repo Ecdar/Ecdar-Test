@@ -21,25 +21,20 @@ class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
         val pre = results[0]
         val post = results[1]
 
-        if (pre.result == pre.expected) {
-            return if (post.result == post.expected) {
-                TestResult(this.toSingleTest(), ResultType.SATISFIED, ResultType.SATISFIED, listOf(pre, post))
-            } else {
-                TestResult(this.toSingleTest(), ResultType.UNSATISFIED, ResultType.SATISFIED, listOf(pre, post))
-            }
-        }
-
         if (pre.result == ResultType.EXCEPTION || post.result == ResultType.EXCEPTION) {
             val result = TestResult(this.toSingleTest(), ResultType.EXCEPTION, ResultType.NON_EXCEPTION, listOf(pre, post))
             result.exception = if (pre.result == ResultType.EXCEPTION) {
                 pre.exception
             } else {
-               post.exception
+                post.exception
             }
 
             return result
         }
 
+        if (pre.result == pre.expected) {
+            return TestResult(this.toSingleTest(), post.result, post.expected, listOf(pre, post))
+        }
 
         return TestResult(this.toSingleTest(), ResultType.NON_EXCEPTION, ResultType.NON_EXCEPTION, listOf(pre, post))
     }

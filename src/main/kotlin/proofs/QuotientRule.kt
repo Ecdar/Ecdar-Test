@@ -22,21 +22,25 @@ class QuotientRule : Proof() {
                     ctx.addNewComponent(Composition(children))
                 }
 
+                S?.let{
+
                 for (X in SCT.thisRefines) {
                     val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
-
+                    XQT?.let{
                     if (S.refines(XQT)) {
                         ctx.setDirty(XQT, this)
                         ctx.setDirty(S, this)
-                    }
+                    }}
                 }
+
                 for (X in SCT.thisNotRefines) {
                     val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
-
+                    XQT?.let{
                     if (S.notRefines(XQT)) {
                         ctx.setDirty(XQT, this)
                         ctx.setDirty(S, this)
-                    }
+                    }}
+                }
                 }
             }
         }

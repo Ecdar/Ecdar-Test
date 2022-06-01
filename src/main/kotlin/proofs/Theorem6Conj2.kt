@@ -14,13 +14,13 @@ class Theorem6Conj2 : Proof() {
             for (lhs in refines) {
                 for (rhs in refines) {
                     if (!lhs.sameAs(rhs) && rhs.getProjectFolder() == lhs.getProjectFolder()) {
-                        var newComp: System = Conjunction(lhs, rhs)
-                        newComp = ctx.addNewComponent(newComp)
-
+                        val maybeNewComp: System = Conjunction(lhs, rhs)
+                        val newComp = ctx.addNewComponent(maybeNewComp)
+                        newComp?.let{
                         if (component.refines(newComp)) {
                             ctx.setDirty(newComp, this)
                             ctx.setDirty(component, this)
-                        }
+                        }}
                     }
                 }
             }

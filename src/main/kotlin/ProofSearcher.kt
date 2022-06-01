@@ -86,7 +86,11 @@ class ProofSearcher {
             contribution += 1
         }
 
-        fun addNewComponent(component: System): System {
+        fun addNewComponent(component: System): System? {
+            if (!component.isValid()) {
+                return null
+            }
+
             for (comp in components) {
                 if (comp.sameAs(component)) {
                     return comp

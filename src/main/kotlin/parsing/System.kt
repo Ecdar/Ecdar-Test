@@ -28,8 +28,7 @@ interface System {
     }
 
     fun sharesAlphabet(other: System): Boolean {
-        //Actions with the same name are assumed different if in another project
-        return getProjectFolder() == other.getProjectFolder() &&
+        return this.getProjectFolder() == other.getProjectFolder() &&
                 inputs == other.inputs &&
                 outputs == other.outputs
     }
@@ -49,6 +48,8 @@ interface System {
     fun getProjectFolder(): String
 
     fun getName(): String
+
+    fun isValid(): Boolean
 }
 
 class Component(val prefix: String, val comp: String) : System {
@@ -90,26 +91,19 @@ class Component(val prefix: String, val comp: String) : System {
         return "$prefix.$comp"
     }
 
+    override fun isValid(): Boolean {
+        return true
+    }
+
 }
 
 
-class Quotient : System {
-    constructor(T: System, S: System) {
-        assert(T.getProjectFolder() == S.getProjectFolder())
-        children.add(T)
-        children.add(S)
-        this.T = T
-        this.S = S
-        setActions()
-    }
+class Quotient(var T: System, var S: System) : System {
 
     private fun setActions() {
-        inputs = T.inputs.union(S.outputs).toHashSet()
-        outputs = T.outputs.intersect(S.outputs).toHashSet()
+        inputs = T.inputs.union(S.outputs).union(listOf("$this-inp")).toHashSet()
+        outputs = T.outputs.subtract(S.outputs).union(S.inputs.subtract(T.inputs)).toHashSet()
     }
-
-    var T : System
-    var S : System
 
     override var inputs = HashSet<String>()
     override var outputs = HashSet<String>()
@@ -148,12 +142,23 @@ class Quotient : System {
         return "(${T.getName()} // ${S.getName()})"
     }
 
+    override fun isValid(): Boolean {
+        return S.outputs.intersect(T.inputs).isEmpty()
+    }
+
     override fun toString(): String {
         return "($T // $S)"
     }
+
+    init {
+        assert(T.getProjectFolder() == S.getProjectFolder())
+        children.add(T)
+        children.add(S)
+        setActions()
+    }
 }
 
-class Conjunction : System {
+    class Conjunction : System {
     constructor(left: System, right: System) {
         assert(left.getProjectFolder() == right.getProjectFolder())
 
@@ -246,6 +251,10 @@ class Conjunction : System {
         })"
     }
 
+    override fun isValid(): Boolean {
+        return children.none { child1 -> child1.inputs.any { input -> children.any {child2 -> child1 != child2 && input in child2.outputs} } }
+    }
+
     override fun toString(): String {
         return "(${
             children.toArray().sortedWith(
@@ -294,11 +303,12 @@ class Composition : System {
         for (child in children) {
             outputs.addAll(child.outputs)
 
-            val potentialInputs = child.outputs.toHashSet()
+            val potentialInputs = child.inputs.toHashSet()
             for (other in children) {
                 if (other == child) continue
                 potentialInputs.removeAll(other.outputs)
             }
+            inputs.addAll(potentialInputs)
         }
     }
 
@@ -341,6 +351,10 @@ class Composition : System {
                 compareBy(String.CASE_INSENSITIVE_ORDER) { it }
             ).joinToString(" || ")
         })"
+    }
+
+    override fun isValid(): Boolean {
+        return children.none { child1 -> child1.outputs.any { output -> children.any {child2 -> child1 != child2 && output in child2.outputs} } }
     }
 
     override fun toString(): String {
