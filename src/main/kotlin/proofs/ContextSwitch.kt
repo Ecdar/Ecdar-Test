@@ -56,7 +56,7 @@ class ContextSwitch : Proof() {
                     parent.T
                 }
 
-                parentClone = Quotient(S, T)
+                parentClone = Quotient(T, S)
             }
             is Conjunction -> {
                 parentClone = Conjunction(children)
