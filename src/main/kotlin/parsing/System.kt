@@ -35,14 +35,26 @@ interface System {
 
     fun sameAs(other: System): Boolean
 
+    fun refinementValid(t: System): Boolean {
+        val s = this
+        val disjoint = s.inputs.intersect(t.outputs).isEmpty() && t.inputs.intersect(s.outputs).isEmpty()
+        val subset = t.inputs.containsAll(s.inputs) && s.outputs.containsAll(t.outputs)
+        return disjoint && subset
+    }
+
     fun refines(spec: System): Boolean {
+        if (!refinementValid(spec)) return false // due to preconditions these can never hold
+
         return thisRefines.add(spec) or
                 spec.refinesThis.add(this)
     }
 
     fun notRefines(spec: System): Boolean {
+        if (!refinementValid(spec)) return false // due to preconditions these can never hold
+
         return thisNotRefines.add(spec) or spec.notRefinesThis.add(this)
     }
+
 
     override fun toString(): String
     fun getProjectFolder(): String
