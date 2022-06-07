@@ -11,6 +11,7 @@ import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
+import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GeneratedTests {
@@ -64,7 +65,8 @@ class GeneratedTests {
         val testName = "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
         val testBody = Executable {
             println("Testing $testName")
-            assertTrue(executor.runTest(test).result!!, "Test failed: $testName") }
+            val t = executor.runTest(test)
+            assertEquals(t.expected, t.result, "Test failed: $testName") }
         return dynamicTest(testName, testBody)
     }
 
