@@ -82,7 +82,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                     }
 
                     val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                    val result = stubs[stubId].withDeadlineAfter(10, TimeUnit.SECONDS).sendQuery(query)
+                    val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)
 
 
                     if (result.hasError()) {
@@ -92,7 +92,6 @@ class Executor(val engineConfig: EngineConfiguration) {
                     success = (result.hasRefinement() && result.refinement.success)
                             || (result.hasConsistency() && result.consistency.success)
                             || (result.hasDeterminism() && result.determinism.success)
-                            || (result.hasQuery() && result.query.query.lowercase().startsWith("true"))
                 }
                 finally {
                     usedStubs[stubId].unlock()
