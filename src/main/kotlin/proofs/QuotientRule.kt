@@ -8,9 +8,9 @@ class QuotientRule : Proof() {
     override val maxContribution: Int = 1000
     //Quotient rule: S || T ≤ X iff? S ≤ X \\ T
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
-        val SCT = component // S || T
-        if (SCT is Composition) {
-            val composition = SCT.children
+        val S_comp_T = component // S || T
+        if (S_comp_T is Composition) {
+            val composition = S_comp_T.children
             if (composition.size<2) return
             for (T in composition) {
                 val children = composition.toHashSet()
@@ -24,23 +24,24 @@ class QuotientRule : Proof() {
 
                 S?.let{
 
-                for (X in SCT.thisRefines) {
-                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
-                    XQT?.let{
-                    if (S.refines(XQT)) {
-                        ctx.setDirty(XQT, this)
-                        ctx.setDirty(S, this)
-                    }}
-                }
+                    for (X in S_comp_T.thisRefines) {
+                        val X_quotient_T = ctx.addNewComponent(Quotient(X, T)) // X \\ T
+                        X_quotient_T?.let{
 
-                for (X in SCT.thisNotRefines) {
-                    val XQT = ctx.addNewComponent(Quotient(X, T)) // X \\ T
-                    XQT?.let{
-                    if (S.notRefines(XQT)) {
-                        ctx.setDirty(XQT, this)
-                        ctx.setDirty(S, this)
-                    }}
-                }
+                        if (S.refines(X_quotient_T)) {
+                            ctx.setDirty(X_quotient_T, this)
+                            ctx.setDirty(S, this)
+                        }}
+                    }
+
+                    for (X in S_comp_T.thisNotRefines) {
+                        val X_quotient_T = ctx.addNewComponent(Quotient(X, T)) // X \\ T
+                        X_quotient_T?.let{
+                        if (S.notRefines(X_quotient_T)) {
+                            ctx.setDirty(X_quotient_T, this)
+                            ctx.setDirty(S, this)
+                        }}
+                    }
                 }
             }
         }
