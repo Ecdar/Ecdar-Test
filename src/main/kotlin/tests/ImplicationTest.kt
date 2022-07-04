@@ -22,7 +22,7 @@ class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
         val post = results[1]
 
         if (pre.result == ResultType.EXCEPTION) {
-            val result = TestResult(this.toSingleTest(), ResultType.EXCEPTION, ResultType.NON_EXCEPTION, listOf(pre, post))
+            val result = TestResult(this.toSingleTest(), ResultType.EXCEPTION, ResultType.EXCEPTION, listOf(pre, post))
             result.exception = pre.exception
 
             return result

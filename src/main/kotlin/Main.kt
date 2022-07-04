@@ -17,7 +17,6 @@ fun main() {
     val time = measureTimeMillis {
         val tests = generateTests()
         println("Found ${tests.size} tests")
-        //return@measureTimeMillis
 
         val results = executeTests(tests)
 

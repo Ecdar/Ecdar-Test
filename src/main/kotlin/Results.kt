@@ -45,16 +45,28 @@ fun printResults(file: String) {
     var failed = 0
     var errored = 0
     var succeded = 0
+    val succedingResults = ResultType.values().associateWith { 0 }.toMutableMap()
+    val failedResults = ResultType.values().associateWith { 0 }.toMutableMap()
 
     results.forEach {
         when(it.result){
-            it.expected -> succeded++
+            it.expected -> {succeded++; succedingResults[it.expected] = succedingResults[it.expected]!! + 1 }
             ResultType.EXCEPTION -> errored++
-            else -> failed++
+            else -> {failed++; failedResults[it.expected] = failedResults[it.expected]!! + 1 }
         }
     }
 
     println("$succeded/$numTests tests succeeded (${(succeded*100.0/numTests).roundToInt()}%)")
+
+    ResultType.values().forEach {
+        val succ = succedingResults[it]!!
+        val all = succedingResults[it]!! + failedResults[it]!!
+        val text = "${succ}/${all}"
+        if (all != 0)
+            println("$text of ${it.colored()} tests succeeded")
+    }
+
+
 
     println("$failed tests failed")
     println("$errored failed due to exceptions")
@@ -105,25 +117,26 @@ fun printResults(file: String) {
     }
 
     println("$succeded/$numTests tests succeeded (${(succeded*100.0/numTests).roundToInt()}%)\n")
+    if (succeded != numTests) {
+        fun Map<String, Int>.toPercentages(max:Int): Collection<String>  {
+            if(max <= 0) return listOf()
+            return this.filterValues { it != 0 }.map { (key, value) -> "\"$key\" used in ${(value*100.0/max).roundToInt()}%" }
+        }
 
-    fun Map<String, Int>.toPercentages(max:Int): Collection<String>  {
-        if(max <= 0) return listOf()
-        return this.filterValues { it != 0 }.map { (key, value) -> "\"$key\" used in ${(value*100.0/max).roundToInt()}%" }
-    }
+        val usedFailedOperators = operatorFailedCounts.toPercentages(failed)
+        if (usedFailedOperators.isNotEmpty()) {
+            println("Operator ${usedFailedOperators.joinToString(", ")} of $failed failing queries")
+        }
 
-    val usedFailedOperators = operatorFailedCounts.toPercentages(failed)
-    if (usedFailedOperators.isNotEmpty()) {
-        println("Operator ${usedFailedOperators.joinToString(", ")} of $failed failing queries")
-    }
+        val usedExceptionOperators = operatorExceptionCounts.toPercentages(errored)
+        if (usedExceptionOperators.isNotEmpty()) {
+            println("Operator ${usedExceptionOperators.joinToString(", ")} of $errored queries causing exceptions")
+        }
 
-    val usedExceptionOperators = operatorExceptionCounts.toPercentages(errored)
-    if (usedExceptionOperators.isNotEmpty()) {
-        println("Operator ${usedExceptionOperators.joinToString(", ")} of $errored queries causing exceptions")
-    }
-
-    val usedSucceededOperators = operatorSucceededCounts.toPercentages(succeded)
-    if (usedSucceededOperators.isNotEmpty()) {
-        println("Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
+        val usedSucceededOperators = operatorSucceededCounts.toPercentages(succeded)
+        if (usedSucceededOperators.isNotEmpty()) {
+            println("Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
+        }
     }
 
     println("\nMedian runtime of successful queries: ${median(times)} ms")

@@ -5,7 +5,7 @@ import parsing.Quotient
 import parsing.System
 
 class QuotientRule : Proof() {
-    override val maxContribution: Int = 1000
+    //override val maxContribution: Int = 1000
     //Quotient rule: S || T ≤ X iff? S ≤ X \\ T
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         val S_comp_T = component // S || T
