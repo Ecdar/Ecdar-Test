@@ -76,7 +76,7 @@ fun printResults(file: String) {
     var prints = 0
 
     // Operators to check for usage in failed queries
-    val operators = listOf("||", "//", "&&", "consistency:", "refinement:")
+    val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
     val operatorFailedCounts = operators.associateWith { 0 }.toMutableMap()
     val operatorExceptionCounts = operators.associateWith { 0 }.toMutableMap()
     val operatorSucceededCounts = operators.associateWith { 0 }.toMutableMap()
@@ -138,8 +138,9 @@ fun printResults(file: String) {
             println("Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
         }
     }
-
+    if (times.size > 0) {
     println("\nMedian runtime of successful queries: ${median(times)} ms")
+    }
 }
 
 fun printTestResult(result: TestResult) {

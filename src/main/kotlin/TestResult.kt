@@ -38,7 +38,6 @@ enum class ResultType {
     }
 }
 
-
 class TestResult(
     @Json(index=7) val test: SingleTest,
     @Json(index=4) val result: ResultType,
@@ -47,5 +46,7 @@ class TestResult(
 ) {
     @Json(index=3) var time: Double? = null
     @Json(index=6) var exception: String? = null
+
+
 }
 

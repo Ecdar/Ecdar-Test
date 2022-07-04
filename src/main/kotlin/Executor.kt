@@ -74,6 +74,8 @@ class Executor(val engineConfig: EngineConfiguration) {
                         if (e.status.code == Status.Code.UNAVAILABLE) {
                             resetStub(stubId)
                             stubs[stubId].withWaitForReady().updateComponents(componentUpdate)
+                        } else {
+                            throw e
                         }
                     }
                     catch (e: IOException) {

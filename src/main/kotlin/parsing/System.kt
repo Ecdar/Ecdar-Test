@@ -151,7 +151,7 @@ class Quotient(var T: System, var S: System) : System {
     }
 
     override fun getName(): String {
-        return "(${T.getName()} // ${S.getName()})"
+        return "(${T.getName()} \\\\ ${S.getName()})"
     }
 
     override fun isValid(): Boolean {
@@ -159,7 +159,7 @@ class Quotient(var T: System, var S: System) : System {
     }
 
     override fun toString(): String {
-        return "($T // $S)"
+        return "($T \\\\ $S)"
     }
 
     init {
