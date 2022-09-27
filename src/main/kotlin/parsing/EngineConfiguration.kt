@@ -1,16 +1,36 @@
 package parsing
 
 import com.beust.klaxon.Json
+import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import java.io.File
+import java.io.FileReader
 import java.io.IOException
 import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-fun parseEngineConfigurations(): List<EngineConfiguration> {
-    return ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
+fun parseEngineConfigurations(): List<Configuration> {
+    val parser = Klaxon()
+    return ArrayList(parser.parseJsonArray(FileReader("configuration.json")).map {
+        try {
+            parser.parseFromJsonObject<GeneralConfiguration>(it as JsonObject)!!
+        } catch (e: Exception) {
+            parser.parseFromJsonObject<EngineConfiguration>(it as JsonObject)!!
+        }
+    })
 }
+interface Configuration {
+    //val name: String
+}
+
+data class GeneralConfiguration(
+    //val name: String,
+    @Json(serializeNull = false)
+    val testCount: Int?,
+    @Json(serializeNull = false)
+    val queryComplexity: Int?,
+) : Configuration
 
 data class EngineConfiguration (
     val enabled: Boolean,
@@ -27,7 +47,7 @@ data class EngineConfiguration (
     val processes: Int,
     val addresses: List<String> = (port until port + processes).map { "${ip}:$it" },
     val ports: List<Int> = (port until port + processes).toList(),
-) {
+) : Configuration {
     var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)
 

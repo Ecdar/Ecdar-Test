@@ -1,3 +1,5 @@
+import parsing.EngineConfiguration
+import parsing.GeneralConfiguration
 import parsing.System
 import tests.Test
 import tests.testgeneration.*
@@ -10,9 +12,9 @@ class TestGenerator {
         return this
     }
 
-    fun generateTests(systems: ArrayList<System>): Collection<Test> {
+    fun generateTests(systems: ArrayList<System>, config: GeneralConfiguration?): Collection<Test> {
         val generatedTests = ArrayList<Test>()
-        val count: Int? = 100
+        val count = config?.testCount
 
         for (testGen in testGenerators) {
             val generatedIntermediate = ArrayList<Test>()

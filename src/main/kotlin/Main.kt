@@ -2,6 +2,8 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
+import parsing.EngineConfiguration
+import parsing.GeneralConfiguration
 import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
@@ -15,11 +17,7 @@ import kotlin.system.measureTimeMillis
 
 fun main() {
     val time = measureTimeMillis {
-        val tests = generateTests()
-        println("Found ${tests.size} tests")
-
-        val results = executeTests(tests)
-
+        val results = executeTests()
         saveResults(results.toList())
     }
 
@@ -27,19 +25,17 @@ fun main() {
     println("Done in ${time / 1000} seconds")
 }
 
-private fun generateTests(): Collection<Test> {
-    val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
-    //ProofLimiter(3).limit(allRelations)
-    return TestGenerator().addAllTests().generateTests(allRelations)
-}
-
 class ResultContext(val result: TestResult,
                     val engine: String,
                     val version: String)
 
-private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
-    val engines = parseEngineConfigurations()
+private fun executeTests(): Iterable<ResultContext> {
+    val configs = parseEngineConfigurations()
     val fullResults = ArrayList<ResultContext>()
+    val general: GeneralConfiguration = configs.find { x -> x is GeneralConfiguration } as GeneralConfiguration
+    val engines: List<EngineConfiguration> = configs.filter { x -> x is EngineConfiguration }.map { x -> x as EngineConfiguration }
+    val tests = generateTests(general)
+    println("Found ${tests.size} tests")
 
     for (engine in engines) {
         val results = ConcurrentLinkedQueue<ResultContext>()
@@ -94,6 +90,12 @@ private fun executeTests(tests: Collection<Test>): Iterable<ResultContext> {
         fullResults.addAll(results)
     }
     return fullResults
+}
+
+private fun generateTests(config: GeneralConfiguration?): Collection<Test> {
+    val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
+    //ProofLimiter(3).limit(allRelations)
+    return TestGenerator().addAllTests().generateTests(allRelations, config)
 }
 
 private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {
