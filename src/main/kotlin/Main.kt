@@ -2,9 +2,7 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
-import parsing.EngineConfiguration
-import parsing.GeneralConfiguration
-import parsing.parseEngineConfigurations
+import parsing.parseConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -30,15 +28,12 @@ class ResultContext(val result: TestResult,
                     val version: String)
 
 private fun executeTests(): Iterable<ResultContext> {
-    val configs = parseEngineConfigurations()
+    val configuration = parseConfigurations()
     val fullResults = ArrayList<ResultContext>()
-    val general = configs.filter { x -> x is GeneralConfiguration }.map { x -> x as GeneralConfiguration }.firstOrNull()
-    val engines: List<EngineConfiguration> = configs.filter { x -> x is EngineConfiguration }.map { x -> x as EngineConfiguration }
-    val tests = generateTests(general?.testCount)
-    println("E: ${engines.size}, Full: ${configs.size}")
+    val tests = generateTests(configuration.general?.testCount)
     println("Found ${tests.size} tests")
 
-    for (engine in engines) {
+    for (engine in configuration.engines) {
         val results = ConcurrentLinkedQueue<ResultContext>()
         val numTests = tests.size
         val progress = AtomicInteger(0)
@@ -53,7 +48,7 @@ private fun executeTests(): Iterable<ResultContext> {
         val time = measureTimeMillis {
             tests.parallelStream().forEach {
 
-                val result = executor.runTest(it)
+                val result = executor.runTest(it, configuration.general?.deadline)
 
                 results.add(ResultContext(result, engine.name, engine.version))
 

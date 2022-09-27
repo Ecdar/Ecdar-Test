@@ -10,31 +10,43 @@ import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-fun parseEngineConfigurations(): List<Configuration> {
+fun parseConfigurations(): ConfigurationCollection {
     val parser = Klaxon()
-    return ArrayList(parser.parseJsonArray(FileReader("configuration.json")).map {
+    var general: GeneralConfiguration? = null
+    val list = ArrayList<EngineConfiguration>()
+    parser.parseJsonArray(FileReader("configuration.json")).forEach { x ->
         try {
-            parser.parseFromJsonObject<EngineConfiguration>(it as JsonObject)!!
+            list.add(parser.parseFromJsonObject<EngineConfiguration>(x as JsonObject)!!)
         } catch (e: Exception) {
-            parser.parseFromJsonObject<GeneralConfiguration>(it as JsonObject)!!
+            if (general == null) {
+                parser.parseFromJsonObject<GeneralConfiguration>(x as JsonObject)?.let {
+                    if (it.enabled)
+                        general = it
+                }
+            }
         }
-    })
+    }
+    return ConfigurationCollection(general, list)
 }
 interface Configuration {
-    //val name: String
+    val name: String
+    val enabled: Boolean
 }
 
 data class GeneralConfiguration(
-    //val name: String,
+    override val name: String,
+    override val enabled: Boolean,
     @Json(serializeNull = false)
     val testCount: Int?,
     @Json(serializeNull = false)
     val queryComplexity: Int?,
+    @Json(serializeNull = false)
+    val deadline: Long?,
 ) : Configuration
 
 data class EngineConfiguration (
-    val enabled: Boolean,
-    val name: String,
+    override val enabled: Boolean,
+    override val name: String,
     val version: String,
     @Json(name = "executablePath", serializeNull = false)
     val path: String?,
@@ -150,7 +162,10 @@ data class EngineConfiguration (
     fun isExternal(): Boolean {
         return path == null || parameterExpression == null
     }
-
 }
+data class ConfigurationCollection(
+    val general: GeneralConfiguration?,
+    val engines: List<EngineConfiguration>
+)
 
 

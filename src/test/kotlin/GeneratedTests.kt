@@ -7,7 +7,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.function.Executable
 import parsing.EngineConfiguration
-import parsing.parseEngineConfigurations
+import parsing.parseConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GeneratedTests {
 
-    val engines = parseEngineConfigurations()
+    val engines = parseConfigurations()
 
     @AfterAll
     fun cleanup() {

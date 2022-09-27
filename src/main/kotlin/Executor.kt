@@ -30,10 +30,10 @@ class Executor(val engineConfig: EngineConfiguration) {
     var queryId = AtomicInteger(0)
     var usedStubs = (0 until numProcesses).map { ReentrantLock() }
 
-    fun runTest(test: Test): TestResult {
+    fun runTest(test: Test, deadline: Long?): TestResult {
         try {
             if (test is MultiTest) {
-                val resses = test.tests.map { runTest(it) }
+                val resses = test.tests.map { runTest(it, deadline) }
                 val res = test.getResult(resses)
                 var time: Double? = 0.0
                 resses.forEach {
@@ -84,7 +84,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                     }
 
                     val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                    val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)//TODO: Get deadline from general config
+                    val result = stubs[stubId].withDeadlineAfter(deadline ?: 30, TimeUnit.SECONDS).sendQuery(query)
 
 
                     if (result.hasError()) {
