@@ -14,9 +14,9 @@ fun parseEngineConfigurations(): List<Configuration> {
     val parser = Klaxon()
     return ArrayList(parser.parseJsonArray(FileReader("configuration.json")).map {
         try {
-            parser.parseFromJsonObject<GeneralConfiguration>(it as JsonObject)!!
-        } catch (e: Exception) {
             parser.parseFromJsonObject<EngineConfiguration>(it as JsonObject)!!
+        } catch (e: Exception) {
+            parser.parseFromJsonObject<GeneralConfiguration>(it as JsonObject)!!
         }
     })
 }

@@ -35,6 +35,7 @@ private fun executeTests(): Iterable<ResultContext> {
     val general: GeneralConfiguration = configs.find { x -> x is GeneralConfiguration } as GeneralConfiguration
     val engines: List<EngineConfiguration> = configs.filter { x -> x is EngineConfiguration }.map { x -> x as EngineConfiguration }
     val tests = generateTests(general)
+    println("E: ${engines.size}, Full: ${configs.size}")
     println("Found ${tests.size} tests")
 
     for (engine in engines) {
