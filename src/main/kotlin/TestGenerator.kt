@@ -12,9 +12,8 @@ class TestGenerator {
         return this
     }
 
-    fun generateTests(systems: ArrayList<System>, config: GeneralConfiguration?): Collection<Test> {
+    fun generateTests(systems: ArrayList<System>, count: Int?): Collection<Test> {
         val generatedTests = ArrayList<Test>()
-        val count = config?.testCount
 
         for (testGen in testGenerators) {
             val generatedIntermediate = ArrayList<Test>()

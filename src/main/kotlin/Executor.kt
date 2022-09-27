@@ -84,7 +84,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                     }
 
                     val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                    val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)//TODO: Get deadline grom general config
+                    val result = stubs[stubId].withDeadlineAfter(30, TimeUnit.SECONDS).sendQuery(query)//TODO: Get deadline from general config
 
 
                     if (result.hasError()) {

@@ -34,7 +34,7 @@ private fun executeTests(): Iterable<ResultContext> {
     val fullResults = ArrayList<ResultContext>()
     val general = configs.filter { x -> x is GeneralConfiguration }.map { x -> x as GeneralConfiguration }.firstOrNull()
     val engines: List<EngineConfiguration> = configs.filter { x -> x is EngineConfiguration }.map { x -> x as EngineConfiguration }
-    val tests = generateTests(general)
+    val tests = generateTests(general?.testCount)
     println("E: ${engines.size}, Full: ${configs.size}")
     println("Found ${tests.size} tests")
 
@@ -93,10 +93,10 @@ private fun executeTests(): Iterable<ResultContext> {
     return fullResults
 }
 
-private fun generateTests(config: GeneralConfiguration?): Collection<Test> {
+private fun generateTests(testCount: Int?): Collection<Test> {
     val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
     //ProofLimiter(3).limit(allRelations)
-    return TestGenerator().addAllTests().generateTests(allRelations, config)
+    return TestGenerator().addAllTests().generateTests(allRelations, testCount)
 }
 
 private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {
