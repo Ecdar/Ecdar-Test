@@ -1,0 +1,73 @@
+[{
+  "time": 405.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: A",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 403.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: A <= A",
+    "testSuite": "SelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 425.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: Test6) implies (refinement: Test6 <= Test6)",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 403.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: Test6",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 22.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: Test6 <= Test6",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 16922.0,
+  "result": "UNSATISFIED",
+  "expected": "UNSATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ Adm2) \\\\ Researcher)",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}]

@@ -1,0 +1,115 @@
+EcdarProtoBuf/EcdarBackendGrpc.java
+ EcdarProtoBuf.EcdarBackendGrpc
+ EcdarProtoBuf.EcdarBackendGrpc$1
+ EcdarProtoBuf.EcdarBackendGrpc$2
+ EcdarProtoBuf.EcdarBackendGrpc$3
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendBaseDescriptorSupplier
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendBlockingStub
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendFileDescriptorSupplier
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendFutureStub
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendImplBase
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendMethodDescriptorSupplier
+ EcdarProtoBuf.EcdarBackendGrpc$EcdarBackendStub
+ EcdarProtoBuf.EcdarBackendGrpc$MethodHandlers
+EcdarProtoBuf/ComponentProtos.java
+ EcdarProtoBuf.ComponentProtos
+ EcdarProtoBuf.ComponentProtos$1
+ EcdarProtoBuf.ComponentProtos$Component
+ EcdarProtoBuf.ComponentProtos$Component$1
+ EcdarProtoBuf.ComponentProtos$Component$Builder
+ EcdarProtoBuf.ComponentProtos$Component$RepCase
+ EcdarProtoBuf.ComponentProtos$ComponentOrBuilder
+EcdarProtoBuf/ObjectProtos.java
+ EcdarProtoBuf.ObjectProtos
+ EcdarProtoBuf.ObjectProtos$StateTuple
+ EcdarProtoBuf.ObjectProtos$StateTuple$1
+ EcdarProtoBuf.ObjectProtos$StateTuple$Builder
+ EcdarProtoBuf.ObjectProtos$StateTuple$LocationTuple
+ EcdarProtoBuf.ObjectProtos$StateTuple$LocationTuple$1
+ EcdarProtoBuf.ObjectProtos$StateTuple$LocationTuple$Builder
+ EcdarProtoBuf.ObjectProtos$StateTuple$LocationTupleOrBuilder
+ EcdarProtoBuf.ObjectProtos$StateTupleOrBuilder
+ EcdarProtoBuf.ObjectProtos$Transition
+ EcdarProtoBuf.ObjectProtos$Transition$1
+ EcdarProtoBuf.ObjectProtos$Transition$Builder
+ EcdarProtoBuf.ObjectProtos$TransitionOrBuilder
+ EcdarProtoBuf.ObjectProtos$Zone
+ EcdarProtoBuf.ObjectProtos$Zone$1
+ EcdarProtoBuf.ObjectProtos$Zone$Builder
+ EcdarProtoBuf.ObjectProtos$ZoneOrBuilder
+parser/RelationParserBaseVisitor.java
+ parser.RelationParserBaseVisitor
+parser/RelationParserListener.java
+ parser.RelationParserListener
+parser/RelationParserBaseListener.java
+ parser.RelationParserBaseListener
+EcdarProtoBuf/ServiceProtos.java
+ EcdarProtoBuf.ServiceProtos
+EcdarProtoBuf/QueryProtos.java
+ EcdarProtoBuf.QueryProtos
+ EcdarProtoBuf.QueryProtos$1
+ EcdarProtoBuf.QueryProtos$ComponentsUpdateRequest
+ EcdarProtoBuf.QueryProtos$ComponentsUpdateRequest$1
+ EcdarProtoBuf.QueryProtos$ComponentsUpdateRequest$Builder
+ EcdarProtoBuf.QueryProtos$ComponentsUpdateRequestOrBuilder
+ EcdarProtoBuf.QueryProtos$IgnoredInputOutputs
+ EcdarProtoBuf.QueryProtos$IgnoredInputOutputs$1
+ EcdarProtoBuf.QueryProtos$IgnoredInputOutputs$Builder
+ EcdarProtoBuf.QueryProtos$IgnoredInputOutputsOrBuilder
+ EcdarProtoBuf.QueryProtos$Query
+ EcdarProtoBuf.QueryProtos$Query$1
+ EcdarProtoBuf.QueryProtos$Query$Builder
+ EcdarProtoBuf.QueryProtos$QueryOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryRequest
+ EcdarProtoBuf.QueryProtos$QueryRequest$1
+ EcdarProtoBuf.QueryProtos$QueryRequest$Builder
+ EcdarProtoBuf.QueryProtos$QueryRequestOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryResponse
+ EcdarProtoBuf.QueryProtos$QueryResponse$1
+ EcdarProtoBuf.QueryProtos$QueryResponse$Builder
+ EcdarProtoBuf.QueryProtos$QueryResponse$ComponentResult
+ EcdarProtoBuf.QueryProtos$QueryResponse$ComponentResult$1
+ EcdarProtoBuf.QueryProtos$QueryResponse$ComponentResult$Builder
+ EcdarProtoBuf.QueryProtos$QueryResponse$ComponentResultOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryResponse$ConsistencyResult
+ EcdarProtoBuf.QueryProtos$QueryResponse$ConsistencyResult$1
+ EcdarProtoBuf.QueryProtos$QueryResponse$ConsistencyResult$Builder
+ EcdarProtoBuf.QueryProtos$QueryResponse$ConsistencyResultOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryResponse$DeterminismResult
+ EcdarProtoBuf.QueryProtos$QueryResponse$DeterminismResult$1
+ EcdarProtoBuf.QueryProtos$QueryResponse$DeterminismResult$Builder
+ EcdarProtoBuf.QueryProtos$QueryResponse$DeterminismResultOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryResponse$RefinementResult
+ EcdarProtoBuf.QueryProtos$QueryResponse$RefinementResult$1
+ EcdarProtoBuf.QueryProtos$QueryResponse$RefinementResult$Builder
+ EcdarProtoBuf.QueryProtos$QueryResponse$RefinementResultOrBuilder
+ EcdarProtoBuf.QueryProtos$QueryResponse$ResultCase
+ EcdarProtoBuf.QueryProtos$QueryResponseOrBuilder
+ EcdarProtoBuf.QueryProtos$SimulationStartRequest
+ EcdarProtoBuf.QueryProtos$SimulationStartRequest$1
+ EcdarProtoBuf.QueryProtos$SimulationStartRequest$Builder
+ EcdarProtoBuf.QueryProtos$SimulationStartRequestOrBuilder
+ EcdarProtoBuf.QueryProtos$SimulationStepRequest
+ EcdarProtoBuf.QueryProtos$SimulationStepRequest$1
+ EcdarProtoBuf.QueryProtos$SimulationStepRequest$Builder
+ EcdarProtoBuf.QueryProtos$SimulationStepRequestOrBuilder
+ EcdarProtoBuf.QueryProtos$SimulationStepResponse
+ EcdarProtoBuf.QueryProtos$SimulationStepResponse$1
+ EcdarProtoBuf.QueryProtos$SimulationStepResponse$Builder
+ EcdarProtoBuf.QueryProtos$SimulationStepResponseOrBuilder
+parser/RelationLexer.java
+ parser.RelationLexer
+parser/RelationParser.java
+ parser.RelationParser
+ parser.RelationParser$Conj_systemContext
+ parser.RelationParser$FactContext
+ parser.RelationParser$FactsContext
+ parser.RelationParser$FullContext
+ parser.RelationParser$LocallyconsistentContext
+ parser.RelationParser$NonrefinementContext
+ parser.RelationParser$NotlocallyconsistentContext
+ parser.RelationParser$RefinementContext
+ parser.RelationParser$SystemContext
+ parser.RelationParser$TermContext
+parser/RelationParserVisitor.java
+ parser.RelationParserVisitor

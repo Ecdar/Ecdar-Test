@@ -1,6 +1,6 @@
 import parsing.System
 import tests.Test
-import tests.testgeneration.TestRule
+import tests.testgeneration.*
 
 class TestGenerator {
     private val testGenerators = ArrayList<TestRule>()
@@ -12,12 +12,18 @@ class TestGenerator {
 
     fun generateTests(systems: ArrayList<System>): Collection<Test> {
         val generatedTests = ArrayList<Test>()
+        val count: Int? = 100
 
         for (testGen in testGenerators) {
+            val generatedIntermediate = ArrayList<Test>()
             for (system in systems) {
                 val newTests = testGen.getTests(system)
-                generatedTests.addAll(newTests)
+                generatedIntermediate.addAll(newTests)
             }
+            if (count != null)
+                generatedTests.addAll(generatedIntermediate.take(count / NUMBER_OF_DIFFERENT_TESTS))
+            else
+                generatedTests.addAll(generatedIntermediate)
         }
 
         return generatedTests

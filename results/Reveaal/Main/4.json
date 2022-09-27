@@ -1,0 +1,361 @@
+[{
+  "time": 444.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: Q",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 442.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: AA",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 442.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: G",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 441.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: G <= G",
+    "testSuite": "SelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 441.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: Imp",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 22.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: A <= A",
+    "testSuite": "SelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 29.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "consistency: A",
+    "testSuite": "Consistency",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 497.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: Test9) implies (refinement: Test9 <= Test9)",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 441.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: Test9",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 56.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: Test9 <= Test9",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 35.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: Q <= G",
+    "testSuite": "Refinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 502.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: (Test10 && Test9)) implies (refinement: (Test10 && Test9) <= (Test10 && Test9))",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 441.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: (Test10 && Test9)",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 61.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: (Test10 && Test9) <= (Test10 && Test9)",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 507.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: Test7) implies (refinement: Test7 <= Test7)",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 442.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: Test7",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 65.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: Test7 <= Test7",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 18.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: Q <= Q",
+    "testSuite": "SelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 43.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/AG",
+    "query": "refinement: G <= Q",
+    "testSuite": "Refinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 83.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: Test6) implies (refinement: Test6 <= Test6)",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 37.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: Test6",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 46.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: Test6 <= Test6",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 82.0,
+  "result": "SATISFIED",
+  "expected": "SATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/Conjunction",
+    "query": "(consistency: Test10) implies (refinement: Test10 <= Test10)",
+    "testSuite": "ImpliedSelfRefinement",
+    "type": "SatisfiedTest"
+  },
+  "_inner": [{
+    "time": 46.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "consistency: Test10",
+      "testSuite": "ImpliedRefinement::Precondition",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }, {
+    "time": 36.0,
+    "result": "SATISFIED",
+    "expected": "SATISFIED",
+    "exception": null,
+    "test": {
+      "projectPath": "samples/json/Conjunction",
+      "query": "refinement: Test10 <= Test10",
+      "testSuite": "ImpliedSelfRefinement",
+      "type": "SatisfiedTest"
+    },
+    "_inner": []
+  }]
+}, {
+  "time": 17659.0,
+  "result": "UNSATISFIED",
+  "expected": "UNSATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ Adm2) \\\\ Researcher)",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 27341.0,
+  "result": "UNSATISFIED",
+  "expected": "UNSATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ Researcher) \\\\ (Adm2 && HalfAdm2))",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 28424.0,
+  "result": "UNSATISFIED",
+  "expected": "UNSATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ (HalfAdm1 && HalfAdm2)) \\\\ Researcher)",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": 29565.0,
+  "result": "UNSATISFIED",
+  "expected": "UNSATISFIED",
+  "exception": null,
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ Researcher) \\\\ (HalfAdm1 && HalfAdm2))",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}, {
+  "time": null,
+  "result": "EXCEPTION",
+  "expected": "NON_EXCEPTION",
+  "exception": "io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED: deadline exceeded after 29.999576132s. [closed=[], open=[[remote_addr=127.0.0.1/127.0.0.1:7001]]]",
+  "test": {
+    "projectPath": "samples/json/EcdarUniversity",
+    "query": "refinement: Machine <= ((Spec \\\\ (Adm2 && HalfAdm1 && HalfAdm2)) \\\\ Researcher)",
+    "testSuite": "NotRefines",
+    "type": "NotSatisfiedTest"
+  },
+  "_inner": []
+}]
