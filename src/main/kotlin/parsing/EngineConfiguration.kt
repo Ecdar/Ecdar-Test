@@ -1,52 +1,20 @@
 package parsing
 
 import com.beust.klaxon.Json
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import java.io.File
-import java.io.FileReader
 import java.io.IOException
 import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-fun parseConfigurations(): ConfigurationCollection {
-    val parser = Klaxon()
-    var general: GeneralConfiguration? = null
-    val list = ArrayList<EngineConfiguration>()
-    parser.parseJsonArray(FileReader("configuration.json")).forEach { x ->
-        try {
-            list.add(parser.parseFromJsonObject<EngineConfiguration>(x as JsonObject)!!)
-        } catch (e: Exception) {
-            if (general == null) {
-                parser.parseFromJsonObject<GeneralConfiguration>(x as JsonObject)?.let {
-                    if (it.enabled)
-                        general = it
-                }
-            }
-        }
-    }
-    return ConfigurationCollection(general, list)
+fun parseEngineConfigurations(): List<EngineConfiguration> {
+        return ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
 }
-interface Configuration {
-    val name: String
-    val enabled: Boolean
-}
-
-data class GeneralConfiguration(
-    override val name: String,
-    override val enabled: Boolean,
-    @Json(serializeNull = false)
-    val testCount: Int?,
-    @Json(serializeNull = false)
-    val queryComplexity: Int?,
-    @Json(serializeNull = false)
-    val deadline: Long?,
-) : Configuration
 
 data class EngineConfiguration (
-    override val enabled: Boolean,
-    override val name: String,
+    val enabled: Boolean,
+    val name: String,
     val version: String,
     @Json(name = "executablePath", serializeNull = false)
     val path: String?,
@@ -59,8 +27,14 @@ data class EngineConfiguration (
     val processes: Int,
     val addresses: List<String> = (port until port + processes).map { "${ip}:$it" },
     val ports: List<Int> = (port until port + processes).toList(),
-) : Configuration {
-    var procs : MutableList<Process>? = null
+    @Json(serializeNull = false)
+    val testCount: Int?,
+    @Json(serializeNull = false)
+    val queryComplexity: Int?,
+    @Json(name = "testTimeout", serializeNull = false)
+    val deadline: Long?,
+) {
+    private var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)
 
     fun initialize() {
@@ -159,13 +133,7 @@ data class EngineConfiguration (
         procs!![id] = processFromPort(ports[id])
     }
 
-    fun isExternal(): Boolean {
+    private fun isExternal(): Boolean {
         return path == null || parameterExpression == null
     }
 }
-data class ConfigurationCollection(
-    val general: GeneralConfiguration?,
-    val engines: List<EngineConfiguration>
-)
-
-

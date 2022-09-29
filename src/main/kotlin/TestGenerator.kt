@@ -1,5 +1,3 @@
-import parsing.EngineConfiguration
-import parsing.GeneralConfiguration
 import parsing.System
 import tests.Test
 import tests.testgeneration.*
@@ -12,19 +10,14 @@ class TestGenerator {
         return this
     }
 
-    fun generateTests(systems: ArrayList<System>, count: Int?): Collection<Test> {
+    fun generateTests(systems: ArrayList<System>): Collection<Test> {
         val generatedTests = ArrayList<Test>()
 
         for (testGen in testGenerators) {
-            val generatedIntermediate = ArrayList<Test>()
             for (system in systems) {
                 val newTests = testGen.getTests(system)
-                generatedIntermediate.addAll(newTests)
+                generatedTests.addAll(newTests)
             }
-            if (count != null)
-                generatedTests.addAll(generatedIntermediate.take(count / NUMBER_OF_DIFFERENT_TESTS))
-            else
-                generatedTests.addAll(generatedIntermediate)
         }
 
         return generatedTests

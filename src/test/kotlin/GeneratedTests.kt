@@ -7,7 +7,7 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.function.Executable
 import parsing.EngineConfiguration
-import parsing.parseConfigurations
+import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GeneratedTests {
 
-    val engines = parseConfigurations()
+    val engines = parseEngineConfigurations()
 
     @AfterAll
     fun cleanup() {
@@ -53,7 +53,7 @@ class GeneratedTests {
         for (engine in engines) {
             val executor = Executor(engine)
             for (test in tests) {
-                val jUnitTest = createJUnitTest(executor, test)
+                val jUnitTest = createJUnitTest(executor, test, engine.deadline)
                 dynamicTests.add(jUnitTest)
             }
         }
@@ -61,11 +61,11 @@ class GeneratedTests {
         return dynamicTests
     }
 
-    private fun createJUnitTest(executor: Executor, test: tests.Test): DynamicTest {
+    private fun createJUnitTest(executor: Executor, test: Test, deadline: Long?): DynamicTest {
         val testName = "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
         val testBody = Executable {
             println("Testing $testName")
-            val t = executor.runTest(test)
+            val t = executor.runTest(test, deadline)
             assertEquals(t.expected, t.result, "Test failed: $testName") }
         return dynamicTest(testName, testBody)
     }

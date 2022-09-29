@@ -2,7 +2,8 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
-import parsing.parseConfigurations
+import parsing.EngineConfiguration
+import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -28,27 +29,28 @@ class ResultContext(val result: TestResult,
                     val version: String)
 
 private fun executeTests(): Iterable<ResultContext> {
-    val configuration = parseConfigurations()
+    val engines = parseEngineConfigurations()
     val fullResults = ArrayList<ResultContext>()
-    val tests = generateTests(configuration.general?.testCount)
-    println("Found ${tests.size} tests")
+    val allTests = generateTests()
+    println("Found ${allTests.size} tests")
 
-    for (engine in configuration.engines) {
+    for (engine in engines) {
+        val tests = sortTests(engine, allTests)
         val results = ConcurrentLinkedQueue<ResultContext>()
         val numTests = tests.size
         val progress = AtomicInteger(0)
-        val failed_tests = AtomicInteger(0)
+        val failedTests = AtomicInteger(0)
         println()
         println("Running $numTests tests on engine \"${engine.name}\"")
 
         val executor = Executor(engine)
 
-        val t = printProgressbar(progress, failed_tests, numTests)
+        val t = printProgressbar(progress, failedTests, numTests)
 
         val time = measureTimeMillis {
             tests.parallelStream().forEach {
 
-                val result = executor.runTest(it, configuration.general?.deadline)
+                val result = executor.runTest(it, engine.deadline)
 
                 results.add(ResultContext(result, engine.name, engine.version))
 
@@ -59,7 +61,7 @@ private fun executeTests(): Iterable<ResultContext> {
                         print("\r") // Replace the progress bar
                         printTestResult(result)
                     }
-                    failed_tests.getAndAdd(1)
+                    failedTests.getAndAdd(1)
                 }
             }
             engine.terminate()
@@ -88,10 +90,24 @@ private fun executeTests(): Iterable<ResultContext> {
     return fullResults
 }
 
-private fun generateTests(testCount: Int?): Collection<Test> {
+private fun generateTests(): Collection<Test> {
     val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
     //ProofLimiter(3).limit(allRelations)
-    return TestGenerator().addAllTests().generateTests(allRelations, testCount)
+    return TestGenerator().addAllTests().generateTests(allRelations)
+}
+
+private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
+    val out = ArrayList<Test>()
+    if (engine.testCount != null) {
+        val map: HashMap<String, ArrayList<Test>> = HashMap()
+        tests.forEach { x -> map.getOrPut(x.testSuite) { ArrayList() }.add(x) }
+        println(map.keys)
+
+        for (test in map.values.toList()) {
+            out.addAll(test.take(engine.testCount / map.keys.size))
+        }
+    }
+    return out
 }
 
 private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {
@@ -134,8 +150,7 @@ private fun writeJsonToFile(filePath: String, results: Any) {
 
 private fun toPrettyJsonString(results: Any): String {
     val builder = StringBuilder(Klaxon().toJsonString(results))
-    val prettyJson = (default(  ).parse(builder) as JsonArray<*>).toJsonString(true)
-    return prettyJson
+    return (default().parse(builder) as JsonArray<*>).toJsonString(true)
 }
 
 private fun writeToNewFile(filePath: String, text: String) {
