@@ -97,16 +97,11 @@ private fun generateTests(): Collection<Test> {
 }
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
-    val out = ArrayList<Test>()
-    if (engine.testCount != null) {
-        val map: HashMap<String, ArrayList<Test>> = HashMap()
-        tests.forEach { x -> map.getOrPut(x.testSuite) { ArrayList() }.add(x) }
-        println(map.keys)
+    var out = tests
 
-        for (test in map.values.toList()) {
-            out.addAll(test.take(engine.testCount / map.keys.size))
-        }
-    }
+    if (engine.testCount != null)
+        out = out.shuffled().take(engine.testCount)
+
     return out
 }
 
