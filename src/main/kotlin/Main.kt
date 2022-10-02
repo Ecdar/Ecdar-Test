@@ -96,10 +96,32 @@ private fun generateTests(): Collection<Test> {
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
 
+
+val OPERATORS = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
     var out = tests
 
-    if (engine.testCount != null)
+    if (engine.queryComplexity != null) { //Query Complexity
+        val upper = engine.queryComplexity.upperBound
+        val lower = engine.queryComplexity.lowerBound ?: 0
+
+        if (upper <= lower)
+            throw Exception("The upper bound for `queryComplexity` can't be less than or equal to the lower bound")
+
+        out = out.filter { x ->
+            x.queries().all { y ->
+                var c = 0
+                for (op in OPERATORS) {
+                    c += y.split(op)
+                        .dropLastWhile { it.isEmpty() }
+                        .toTypedArray().size - 1
+                }
+                c in lower..upper
+            }
+        }
+    }
+
+    if (engine.testCount != null) //Count
         out = out.shuffled().take(engine.testCount)
 
     return out

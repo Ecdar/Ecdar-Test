@@ -30,7 +30,7 @@ data class EngineConfiguration (
     @Json(serializeNull = false)
     val testCount: Int?,
     @Json(serializeNull = false)
-    val queryComplexity: Int?,
+    val queryComplexity: ComplexityConfiguration?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
 ) {
@@ -137,3 +137,9 @@ data class EngineConfiguration (
         return path == null || parameterExpression == null
     }
 }
+
+data class ComplexityConfiguration(
+    @Json(serializeNull = false)
+    val lowerBound: Int?,
+    val upperBound: Int
+)
