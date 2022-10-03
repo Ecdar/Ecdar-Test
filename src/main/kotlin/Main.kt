@@ -105,8 +105,8 @@ private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Co
         val upper = engine.queryComplexity.upperBound
         val lower = engine.queryComplexity.lowerBound ?: 0
 
-        if (upper <= lower)
-            throw Exception("The upper bound for `queryComplexity` can't be less than or equal to the lower bound")
+        if (upper < lower)
+            throw Exception("The upper bound for `queryComplexity` can't be less than the lower bound")
 
         out = out.filter { x ->
             x.queries().all { y ->
