@@ -8,9 +8,8 @@ import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-fun parseEngineConfigurations(): List<EngineConfiguration> {
-        return ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
-}
+fun parseEngineConfigurations(): List<EngineConfiguration>
+    = ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
 
 data class EngineConfiguration (
     val enabled: Boolean,
