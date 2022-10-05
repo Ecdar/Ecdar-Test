@@ -3,6 +3,7 @@ import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
 import facts.RelationLoader
 import parsing.EngineConfiguration
+import parsing.Sorting
 import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
@@ -97,11 +98,27 @@ private fun generateTests(): Collection<Test> {
 }
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
-    var out = tests
+    var out = ArrayList(tests)
 
-    if (engine.testCount != null)
-        out = out.shuffled().take(engine.testCount)
+    if (engine.testCount != null) {
+        out = when (engine.testSorting) {
+            Sorting.FILO -> ArrayList(out.takeLast(engine.testCount))
+            Sorting.FIFO -> ArrayList(out.take(engine.testCount))
+            Sorting.RoundRobin -> getEqualTests(out, engine.testCount)
+            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testCount))
+        }
+    }
+    return out
+}
 
+private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> {
+    val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()
+    tests.forEach { x -> map.getOrPut(Pair(x.type, x.testSuite)) { ArrayList() }.add(x) }
+    println(map.keys)
+    val out = ArrayList<Test>()
+    for (test in map.values.toList()) {
+        out.addAll(test.take(count / map.keys.size))
+    }
     return out
 }
 

@@ -30,6 +30,8 @@ data class EngineConfiguration (
     @Json(serializeNull = false)
     val testCount: Int?,
     @Json(serializeNull = false)
+    val testSorting: Sorting?,
+    @Json(serializeNull = false)
     val queryComplexity: Int?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
@@ -136,4 +138,12 @@ data class EngineConfiguration (
     private fun isExternal(): Boolean {
         return path == null || parameterExpression == null
     }
+}
+
+enum class Sorting {
+    Random,
+    FILO,
+    FIFO,
+    @Json(name = "Fair")
+    RoundRobin
 }
