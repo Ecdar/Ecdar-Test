@@ -101,11 +101,16 @@ private fun generateTests(): Collection<Test> {
 val OPERATORS = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
     var out = ArrayList(tests)
-    //var out = tests
 
     if (engine.queryComplexity != null) { //Query Complexity
-        val upper = engine.queryComplexity.upperBound
-        val lower = engine.queryComplexity.lowerBound ?: 0
+        val upper: Int; val lower: Int
+        if (engine.queryComplexity.size >= 2) {
+            upper = engine.queryComplexity[1]
+            lower = engine.queryComplexity.first()
+        } else {
+            upper = engine.queryComplexity.firstOrNull() ?: Int.MAX_VALUE
+            lower = 0
+        }
 
         if (upper < lower)
             throw Exception("The upper bound for `queryComplexity` can't be less than the lower bound")
