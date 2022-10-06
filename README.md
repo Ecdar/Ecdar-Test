@@ -39,7 +39,7 @@ Requires a configuration file `configuration.json` with information for each eng
 ```
 If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
 
-`testCount` and `testTimeout` are both optional configurations. `testCount` limits the number of tests to execute (default=all) and `testTimeout` sets the time limit in seconds for the duration of a tests (default=30).
+`testCount` and `testTimeout` are both optional configurations. `testCount` limits the number of tests to execute (default=all) and `testTimeout` sets the time limit in seconds for the duration of a test (default=30).
 
 ## Run Tests for Engine
 Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.

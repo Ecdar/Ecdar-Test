@@ -8,9 +8,8 @@ import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-fun parseEngineConfigurations(): List<EngineConfiguration> {
-        return ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
-}
+fun parseEngineConfigurations(): List<EngineConfiguration>
+    = ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
 
 data class EngineConfiguration (
     val enabled: Boolean,
@@ -29,6 +28,8 @@ data class EngineConfiguration (
     val ports: List<Int> = (port until port + processes).toList(),
     @Json(serializeNull = false)
     val testCount: Int?,
+    @Json(serializeNull = false)
+    val testSorting: Sorting?,
     @Json(serializeNull = false)
     val queryComplexity: ComplexityConfiguration?,
     @Json(name = "testTimeout", serializeNull = false)
@@ -136,6 +137,14 @@ data class EngineConfiguration (
     private fun isExternal(): Boolean {
         return path == null || parameterExpression == null
     }
+}
+
+enum class Sorting {
+    Random,
+    FILO,
+    FIFO,
+    @Json(name = "Fair")
+    RoundRobin
 }
 
 data class ComplexityConfiguration(
