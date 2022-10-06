@@ -17,7 +17,9 @@ Requires a configuration file `configuration.json` with information for each eng
         "testTimeout": 60,
         "testCount" : 100,        
         "testSorting": "Fair",
-        "queryComplexity": [5, 10]
+        "queryComplexity": [5, 10],
+        "omitTests": true,
+        "testsSavePath": "/path/to/file"
     },
     {
         "name": "J-Ecdar",
@@ -55,6 +57,8 @@ Both the upper and lower bound can be set.
 If only one element is in the array the upper bound will be set to that.
 If more than two elements are present those beyond index `1` will be omitted.
 If the array is empty, no bound is set.
+`omitTests` determines if the tests are to be executed. If true, the tests will instead be written to the file in the filepath specified in `testsSavePath`, or the default-path `./${engine.name}_tests` (default=`false`).
+`testsSavePath` determines where in the filesystem to save the text-file with the tests. If not set, the tests will not be saved on disk.
 
 ## Run Tests for Engine
 Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
