@@ -32,7 +32,6 @@ data class EngineConfiguration (
     val testSorting: Sorting?,
     @Json(serializeNull = false)
     val queryComplexity: Array<Int>?,
-//    val queryComplexity: ComplexityConfiguration?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
 ) {
@@ -147,9 +146,3 @@ enum class Sorting {
     @Json(name = "Fair")
     RoundRobin
 }
-
-data class ComplexityConfiguration(
-    @Json(serializeNull = false)
-    val lowerBound: Int?,
-    val upperBound: Int
-)
