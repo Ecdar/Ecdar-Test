@@ -14,8 +14,10 @@ Requires a configuration file `configuration.json` with information for each eng
         "processes" : 8,
         "enabled" : true,
         "verbose": true,
-        "testCount" : 100,
-        "testTimeout": 60
+        "testTimeout": 60,
+        "testCount" : 100,        
+        "testSorting": "Fair",
+        "queryComplexity": [5, 10]
     },
     {
         "name": "J-Ecdar",
@@ -39,7 +41,20 @@ Requires a configuration file `configuration.json` with information for each eng
 ```
 If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
 
-`testCount` and `testTimeout` are both optional configurations. `testCount` limits the number of tests to execute (default=all) and `testTimeout` sets the time limit in seconds for the duration of a test (default=30).
+`testTimeout`, `testCount`, `testSorting`, `queryComplexity` are all optional configurations.
+`testTimeout` sets the time limit in seconds for the duration of a test (default=30).
+`testCount` limits the number of tests to execute (default=all).
+`testSorting` determines how to sort the tests if `testCount` is set. There are four different sortings:
+* `Random` (default) - Takes `testCount` generated tests randomly
+* `FILO` - Takes the last `testCount` generated tests
+* `FIFO` - Takes the first `testCount` generated tests
+* `Fair` - Takes an equal amount of each test-sort, summing up to no more than `testCount` tests
+
+`queryComplexity` determines the complexity of the queries in the tests (the number of operators).
+Both the upper and lower bound can be set.
+If only one element is in the array the upper bound will be set to that.
+If more than two elements are present those beyond index `1` will be omitted.
+If the array is empty, no bound is set.
 
 ## Run Tests for Engine
 Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
