@@ -34,6 +34,10 @@ data class EngineConfiguration (
     val queryComplexity: Array<Int>?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
+    @Json(serializeNull = false)
+    val omitTests: Boolean?,
+    @Json(serializeNull = false)
+    val testsSavePath: String?,
 ) {
     private var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)

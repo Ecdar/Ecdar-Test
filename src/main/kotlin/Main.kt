@@ -1,6 +1,7 @@
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
+import com.google.type.DateTime
 import facts.RelationLoader
 import parsing.EngineConfiguration
 import parsing.Sorting
@@ -9,9 +10,14 @@ import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
 import java.io.File
+import java.nio.charset.Charset
+import java.nio.file.Paths
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
+import kotlin.io.path.absolutePathString
 import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
 
@@ -37,6 +43,15 @@ private fun executeTests(): Iterable<ResultContext> {
 
     for (engine in engines) {
         val tests = sortTests(engine, allTests)
+        if (engine.omitTests == true) { //Omitting tests and/or saving them
+            val path = engine.testsSavePath ?: "./${engine.name}_tests" //TODO : Default file
+            saveTests(engine.name, path, tests)
+            println("Executing the tests for ${engine.name} have been omitted")
+            println()
+            continue
+        } else if (engine.testsSavePath != null)
+            saveTests(engine.name, engine.testsSavePath, tests)
+
         val results = ConcurrentLinkedQueue<ResultContext>()
         val numTests = tests.size
         val progress = AtomicInteger(0)
@@ -148,6 +163,40 @@ private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> 
         out.addAll(test.take(count / map.keys.size))
     }
     return out
+}
+
+private fun saveTests(engineName: String, path: String, tests: Collection<Test>) {
+    val file = File(Paths.get(path).absolutePathString()).normalize()
+    println("Saving the tests for $engineName in $file")
+    val writer = file.writer(Charset.defaultCharset())
+    val initStr = "Tests generated for engine '$engineName' on ${SimpleDateFormat("dd/M/yyyy hh:mm:ss").format(Date())}"
+    writer.write(initStr + "\n")
+    writer.write("${"-" * initStr.length}\n\n")
+    var testCol = tests
+    while (!testCol.isEmpty()) {
+        val first = testCol.first()
+        val pair = testCol.partition { it.projectPath == first.projectPath }
+
+        writer.write(first.projectPath + "\n")
+        for (test in pair.first) {
+            writer.write(formatTest(test, "\t"))
+        }
+        writer.write("\n")
+        testCol = pair.second
+    }
+    writer.close()
+}
+
+private fun formatTest(test: Test, indenter: String): String {
+    var out = "$indenter${test.type}: ${test.testSuite}\n"
+    for (query in test.queries()) {
+        out += "$indenter$indenter\"${query}\"\n"
+    }
+    return out
+}
+
+private operator fun CharSequence.times(count: Int): String {
+    return repeat(count)
 }
 
 private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {
