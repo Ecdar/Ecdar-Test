@@ -146,10 +146,7 @@ private fun String.occurrences(strings: Collection<String>): Int {
 }
 
 private fun String.occurrences(string: String): Int
-= this.split(string)
-        .dropLastWhile { it.isEmpty() }
-        .toTypedArray().size - 1
-
+    = this.windowed(string.length).count { it == string }
 private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> {
     val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()
     tests.forEach { x -> map.getOrPut(Pair(x.type, x.testSuite)) { ArrayList() }.add(x) }
@@ -168,25 +165,32 @@ private fun saveTests(engineName: String, path: String, tests: Collection<Test>)
     val initStr = "Tests generated for engine '$engineName' on ${SimpleDateFormat("dd/M/yyyy hh:mm:ss").format(Date())}"
     writer.write(initStr + "\n")
     writer.write("${"-" * initStr.length}\n\n")
-    var testCol = tests
-    while (!testCol.isEmpty()) {
-        val first = testCol.first()
-        val pair = testCol.partition { it.projectPath == first.projectPath }
+    val sep = System.lineSeparator()
 
-        writer.write(first.projectPath + "\n")
+    // Partitions by the different systems
+    // The first partition is written to the file
+    // The second is assigned to `remainingTests`
+    // This is done until no more tests can be found in `remainingTests`
+    var remainingTests = tests
+    while (!remainingTests.isEmpty()) {
+        val first = remainingTests.first()
+        val pair = remainingTests.partition { it.projectPath == first.projectPath }
+
+        writer.write(first.projectPath + sep)
         for (test in pair.first) {
             writer.write(formatTest(test, "\t"))
         }
-        writer.write("\n")
-        testCol = pair.second
+        writer.write(sep)
+        remainingTests = pair.second
     }
     writer.close()
 }
 
 private fun formatTest(test: Test, indenter: String): String {
-    var out = "$indenter${test.type}: ${test.testSuite}\n"
+    val sep = System.lineSeparator()
+    var out = "$indenter${test.type}: ${test.testSuite}$sep"
     for (query in test.queries()) {
-        out += "$indenter$indenter\"${query}\"\n"
+        out += "$indenter$indenter\"${query}\"$sep"
     }
     return out
 }
