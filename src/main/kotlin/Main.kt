@@ -22,7 +22,7 @@ import kotlin.system.measureTimeMillis
 
 fun main() {
     val time = measureTimeMillis {
-        val results = executeTests()
+        val results = handleTests()
         saveResults(results.toList())
     }
 
@@ -34,75 +34,79 @@ class ResultContext(val result: TestResult,
                     val engine: String,
                     val version: String)
 
-private fun executeTests(): Iterable<ResultContext> {
+private fun handleTests(): Iterable<ResultContext> {
     val engines = parseEngineConfigurations()
     val fullResults = ArrayList<ResultContext>()
     val allTests = generateTests()
     println("Found ${allTests.size} tests")
 
     for (engine in engines) {
-        val tests = sortTests(engine, allTests)
+        val sortedTests = sortTests(engine, allTests)
         if (engine.omitTests == true) { //Omitting tests and saving them
             val path = engine.testsSavePath ?: "./${engine.name}_tests"
-            saveTests(engine.name, path, tests)
+            saveTests(engine.name, path, sortedTests)
             println("Executing the tests for ${engine.name} have been omitted")
             println()
             continue
         } else if (engine.testsSavePath != null)
-            saveTests(engine.name, engine.testsSavePath, tests)
+            saveTests(engine.name, engine.testsSavePath, sortedTests)
 
-        val results = ConcurrentLinkedQueue<ResultContext>()
-        val numTests = tests.size
-        val progress = AtomicInteger(0)
-        val failedTests = AtomicInteger(0)
-        println()
-        println("Running $numTests tests on engine \"${engine.name}\"")
-
-        val executor = Executor(engine)
-
-        val t = printProgressbar(progress, failedTests, numTests)
-
-        val time = measureTimeMillis {
-            tests.parallelStream().forEach {
-
-                val result = executor.runTest(it, engine.deadline)
-
-                results.add(ResultContext(result, engine.name, engine.version))
-
-                progress.getAndAdd(1)
-
-                if (result.result != result.expected) {
-                    if (engine.verbose == true) {
-                        print("\r") // Replace the progress bar
-                        printTestResult(result)
-                    }
-                    failedTests.getAndAdd(1)
-                }
-            }
-            engine.terminate()
-        }
-
-        t.join()
-
-        var passed = 0
-        var failed = 0
-        var unknown = 0
-
-        results.forEach { when(it.result.result) {
-            it.result.expected ->  passed++
-            else -> if (it.result.result == ResultType.EXCEPTION) unknown++ else failed++
-            }
-        }
-
-        println()
-        println("${passed}/$numTests tests succeeded (${(passed*100.0/numTests).roundToInt()}%)" +
-                (if (unknown == 0) "" else " ($unknown failed due to exceptions)") +
-                " in ${time/1000} seconds")
-
-
-        fullResults.addAll(results)
+        fullResults.addAll(executeTests(engine, sortedTests))
     }
     return fullResults
+}
+private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): Iterable<ResultContext> {
+    val results = ConcurrentLinkedQueue<ResultContext>()
+    val numTests = tests.size
+    val progress = AtomicInteger(0)
+    val failedTests = AtomicInteger(0)
+    println()
+    println("Running $numTests tests on engine \"${engine.name}\"")
+
+    val executor = Executor(engine)
+
+    val t = printProgressbar(progress, failedTests, numTests)
+
+    val time = measureTimeMillis {
+        tests.parallelStream().forEach {
+
+            val result = executor.runTest(it, engine.deadline)
+
+            results.add(ResultContext(result, engine.name, engine.version))
+
+            progress.getAndAdd(1)
+
+            if (result.result != result.expected) {
+                if (engine.verbose == true) {
+                    print("\r") // Replace the progress bar
+                    printTestResult(result)
+                }
+                failedTests.getAndAdd(1)
+            }
+        }
+        engine.terminate()
+    }
+
+    t.join()
+
+    var passed = 0
+    var failed = 0
+    var unknown = 0
+
+    results.forEach {
+        when (it.result.result) {
+            it.result.expected -> passed++
+            else -> if (it.result.result == ResultType.EXCEPTION) unknown++ else failed++
+        }
+    }
+
+    println()
+    println(
+        "${passed}/$numTests tests succeeded (${(passed * 100.0 / numTests).roundToInt()}%)" +
+                (if (unknown == 0) "" else " ($unknown failed due to exceptions)") +
+                " in ${time / 1000} seconds"
+    )
+    return results
 }
 
 private fun generateTests(): Collection<Test> {
@@ -110,7 +114,6 @@ private fun generateTests(): Collection<Test> {
     //ProofLimiter(3).limit(allRelations)
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
-
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
     val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
@@ -147,6 +150,7 @@ private fun String.occurrences(strings: Collection<String>): Int {
 
 private fun String.occurrences(string: String): Int
     = this.windowed(string.length).count { it == string }
+
 private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> {
     val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()
     tests.forEach { x -> map.getOrPut(Pair(x.type, x.testSuite)) { ArrayList() }.add(x) }
