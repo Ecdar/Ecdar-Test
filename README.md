@@ -14,11 +14,11 @@ Requires a configuration file `configuration.json` with information for each eng
         "processes" : 8,
         "enabled" : true,
         "verbose": true,
-        "testTimeout": 60,
-        "testCount" : 100,        
-        "testSorting": "Fair",
-        "queryComplexity": [5, 10],
-        "omitTests": true,
+        "testTimeout": 30,
+        "testCount" : 4000,        
+        "testSorting": "Random",
+        "queryComplexity": [0, 1000],
+        "omitTests": false,
         "testsSavePath": "/path/to/file"
     },
     {
@@ -43,19 +43,19 @@ Requires a configuration file `configuration.json` with information for each eng
 ```
 If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
 
-`testTimeout`, `testCount`, `testSorting`, `queryComplexity` are all optional configurations.
+`testTimeout`, `testCount`, `testSorting`, `queryComplexity` are all optional attributes.
 `testTimeout` sets the time limit in seconds for the duration of a test (default=30).
 `testCount` limits the number of tests to execute (default=all).
 `testSorting` determines how to sort the tests if `testCount` is set. There are four different sortings:
 * `Random` (default) - Takes `testCount` generated tests randomly
 * `FILO` - Takes the last `testCount` generated tests
 * `FIFO` - Takes the first `testCount` generated tests
-* `Fair` - Takes an equal amount of each test-sort, summing up to no more than `testCount` tests
+* `Split` - Takes an equal split of each test-sort by RoundRobin, summing up to no more than `testCount` tests
 
 `queryComplexity` determines the complexity of the queries in the tests (the number of operators).
 Both the upper and lower bound can be set.
 If only one element is in the array the upper bound will be set to that.
-If more than two elements are present those beyond index `1` will be omitted.
+If more than two elements are defined then only the first two will be used where the first value is the lower bound and second value is the upper bound.
 If the array is empty, no bound is set.
 `omitTests` determines if the tests are to be executed. If true, the tests will instead be written to the file in the filepath specified in `testsSavePath`, or the default-path `./${engine.name}_tests` (default=`false`).
 `testsSavePath` determines where in the filesystem to save the text-file with the tests. If not set, the tests will not be saved on disk.
@@ -69,7 +69,7 @@ Running 5730 tests on engine "Reveaal"
 | 100% [5730/5730]
 4372/5730 tests succeeded (76%) in 78 seconds
 ```
-## Print Results From Latest Run
+## Print Results From The Latest Run
 Pretty print results of the latest run from `main()` in [Results.kt](src/main/kotlin/Results.kt).
 This further provides the arguments for the engine to rerun any failed query.
 ```

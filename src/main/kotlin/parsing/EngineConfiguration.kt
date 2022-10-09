@@ -147,6 +147,6 @@ enum class Sorting {
     Random,
     FILO,
     FIFO,
-    @Json(name = "Fair")
+    @Json(name = "Split")
     RoundRobin
 }
