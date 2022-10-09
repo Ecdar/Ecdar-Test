@@ -34,7 +34,7 @@ data class EngineConfiguration (
     val queryComplexity: Array<Int>?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
-    @Json(serializeNull = false)
+    @Json(serializeNull = false, name = "omitTesting")
     val omitTests: Boolean?,
     @Json(serializeNull = false)
     val testsSavePath: String?,

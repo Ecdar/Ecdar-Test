@@ -163,9 +163,9 @@ private fun saveTests(engineName: String, path: String, tests: Collection<Test>)
     println("Saving the tests for $engineName in $file")
     val writer = file.writer(Charset.defaultCharset())
     val initStr = "Tests generated for engine '$engineName' on ${SimpleDateFormat("dd/M/yyyy hh:mm:ss").format(Date())}"
-    writer.write(initStr + "\n")
-    writer.write("${"-" * initStr.length}\n\n")
     val sep = System.lineSeparator()
+    writer.write(initStr + sep)
+    writer.write("${"-".repeat(initStr.length)}\n\n")
 
     // Partitions by the different systems
     // The first partition is written to the file
@@ -173,30 +173,17 @@ private fun saveTests(engineName: String, path: String, tests: Collection<Test>)
     // This is done until no more tests can be found in `remainingTests`
     var remainingTests = tests
     while (!remainingTests.isEmpty()) {
-        val first = remainingTests.first()
-        val pair = remainingTests.partition { it.projectPath == first.projectPath }
+        val first = remainingTests.first() // Partitions based on the first elements project
+        val (writeTests, otherTests) = remainingTests.partition { it.projectPath == first.projectPath }
 
         writer.write(first.projectPath + sep)
-        for (test in pair.first) {
-            writer.write(formatTest(test, "\t"))
-        }
+        for (test in writeTests)
+            writer.write(test.format("\t"))
+
         writer.write(sep)
-        remainingTests = pair.second
+        remainingTests = otherTests
     }
     writer.close()
-}
-
-private fun formatTest(test: Test, indenter: String): String {
-    val sep = System.lineSeparator()
-    var out = "$indenter${test.type}: ${test.testSuite}$sep"
-    for (query in test.queries()) {
-        out += "$indenter$indenter\"${query}\"$sep"
-    }
-    return out
-}
-
-private operator fun CharSequence.times(count: Int): String {
-    return repeat(count)
 }
 
 private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max: Int) : Thread {

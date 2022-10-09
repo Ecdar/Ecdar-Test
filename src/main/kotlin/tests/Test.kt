@@ -6,6 +6,15 @@ abstract class Test(val testSuite: String, val projectPath: String) {
     val type = this.javaClass.simpleName
     abstract fun queries(): List<String>
     abstract fun toSingleTest(): SingleTest
+
+    fun format(indenter: String): String {
+        val sep = System.lineSeparator()
+        var out = "$indenter${this.type}: ${this.testSuite}$sep"
+        for (query in this.queries()) {
+            out += "$indenter$indenter\"${query}\"$sep"
+        }
+        return out
+    }
 }
 
 open class SingleTest(testSuite: String, projectPath: String, val query: String) : Test(testSuite, projectPath) {
