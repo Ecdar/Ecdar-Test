@@ -1,7 +1,6 @@
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
-import com.google.type.DateTime
 import facts.RelationLoader
 import parsing.EngineConfiguration
 import parsing.Sorting
@@ -43,8 +42,8 @@ private fun executeTests(): Iterable<ResultContext> {
 
     for (engine in engines) {
         val tests = sortTests(engine, allTests)
-        if (engine.omitTests == true) { //Omitting tests and/or saving them
-            val path = engine.testsSavePath ?: "./${engine.name}_tests" //TODO : Default file
+        if (engine.omitTests == true) { //Omitting tests and saving them
+            val path = engine.testsSavePath ?: "./${engine.name}_tests"
             saveTests(engine.name, path, tests)
             println("Executing the tests for ${engine.name} have been omitted")
             println()
@@ -113,32 +112,16 @@ private fun generateTests(): Collection<Test> {
 }
 
 
-val OPERATORS = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
+    val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
     var out = ArrayList(tests)
 
     if (engine.queryComplexity != null) { //Query Complexity
-        val upper: Int; val lower: Int
-        if (engine.queryComplexity.size >= 2) {
-            upper = engine.queryComplexity[1]
-            lower = engine.queryComplexity.first()
-        } else {
-            upper = engine.queryComplexity.firstOrNull() ?: Int.MAX_VALUE
-            lower = 0
-        }
-
-        if (upper < lower)
-            throw Exception("The upper bound for `queryComplexity` can't be less than the lower bound")
+        val (lower, upper) = engine.bounds()
 
         out = ArrayList(out.filter { x ->
             x.queries().all { y ->
-                var c = 0
-                for (op in OPERATORS) {
-                    c += y.split(op)
-                        .dropLastWhile { it.isEmpty() }
-                        .toTypedArray().size - 1
-                }
-                c in lower..upper
+                y.occurrences(operators) in lower..upper
             }
         })
     }
@@ -153,6 +136,19 @@ private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Co
     }
     return out
 }
+
+private fun String.occurrences(strings: Collection<String>): Int {
+    var count = 0
+    for (string in strings) {
+        count += this.occurrences(string)
+    }
+    return count
+}
+
+private fun String.occurrences(string: String): Int
+= this.split(string)
+        .dropLastWhile { it.isEmpty() }
+        .toTypedArray().size - 1
 
 private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> {
     val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()

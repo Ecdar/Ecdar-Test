@@ -141,6 +141,22 @@ data class EngineConfiguration (
     private fun isExternal(): Boolean {
         return path == null || parameterExpression == null
     }
+
+    public fun bounds(): Pair<Int, Int> {
+        val upper: Int; val lower: Int
+        if (this.queryComplexity!!.size >= 2) {
+            upper = this.queryComplexity[1]
+            lower = this.queryComplexity.first()
+        } else {
+            upper = this.queryComplexity.firstOrNull() ?: Int.MAX_VALUE
+            lower = 0
+        }
+
+        if (upper < lower)
+            throw Exception("The upper bound for `queryComplexity` can't be less than the lower bound")
+
+        return Pair(lower, upper)
+    }
 }
 
 enum class Sorting {
