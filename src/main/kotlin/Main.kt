@@ -55,6 +55,7 @@ private fun handleTests(): Iterable<ResultContext> {
     }
     return fullResults
 }
+
 private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): Iterable<ResultContext> {
     val results = ConcurrentLinkedQueue<ResultContext>()
     val numTests = tests.size
@@ -154,8 +155,10 @@ private fun String.occurrences(string: String): Int
 private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> {
     val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()
     tests.forEach { x -> map.getOrPut(Pair(x.type, x.testSuite)) { ArrayList() }.add(x) }
-    println(map.keys)
+
     val out = ArrayList<Test>()
+    if (map.keys.size == 0)
+        return out
     for (test in map.values.toList()) {
         out.addAll(test.take(count / map.keys.size))
     }
@@ -164,6 +167,8 @@ private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> 
 
 private fun saveTests(engineName: String, path: String, tests: Collection<Test>) {
     val file = File(Paths.get(path).absolutePathString()).normalize()
+    if (file.canWrite())
+        throw Exception("Cannot write to file $path")
     println("Saving the tests for $engineName in $file")
     val writer = file.writer(Charset.defaultCharset())
     val initStr = "Tests generated for engine '$engineName' on ${SimpleDateFormat("dd/M/yyyy hh:mm:ss").format(Date())}"
