@@ -21,22 +21,19 @@ import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
 
 fun main() {
-    val time = measureTimeMillis {
-        val results = handleTests()
-        saveResults(results.toList())
-    }
+    val time = measureTimeMillis { executeConfigurations() }
 
     println()
     println("Done in ${time / 1000} seconds")
 }
 
-class ResultContext(val result: TestResult,
-                    val engine: String,
-                    val version: String)
+class ResultContext(
+    val engine: String,
+    val version: String,
+    val results: ConcurrentLinkedQueue<TestResult>,)
 
-private fun handleTests(): Iterable<ResultContext> {
+private fun executeConfigurations() {
     val engines = parseEngineConfigurations()
-    val fullResults = ArrayList<ResultContext>()
     val allTests = generateTests()
     println("Found ${allTests.size} tests")
 
@@ -51,13 +48,12 @@ private fun handleTests(): Iterable<ResultContext> {
         } else if (engine.testsSavePath != null)
             saveTests(engine.name, engine.testsSavePath, sortedTests)
 
-        fullResults.addAll(executeTests(engine, sortedTests))
+        executeTests(engine, sortedTests)
     }
-    return fullResults
 }
 
-private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): Iterable<ResultContext> {
-    val results = ConcurrentLinkedQueue<ResultContext>()
+private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
+    val engineResults = ResultContext(engine.name, engine.version, ConcurrentLinkedQueue())
     val numTests = tests.size
     val progress = AtomicInteger(0)
     val failedTests = AtomicInteger(0)
@@ -71,16 +67,16 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): 
     val time = measureTimeMillis {
         tests.parallelStream().forEach {
 
-            val result = executor.runTest(it, engine.deadline)
+            val testResult = executor.runTest(it, engine.deadline)
 
-            results.add(ResultContext(result, engine.name, engine.version))
+            engineResults.results.add(testResult)
 
             progress.getAndAdd(1)
 
-            if (result.result != result.expected) {
+            if (testResult.result != testResult.expected) {
                 if (engine.verbose == true) {
                     print("\r") // Replace the progress bar
-                    printTestResult(result)
+                    printTestResult(testResult)
                 }
                 failedTests.getAndAdd(1)
             }
@@ -94,10 +90,10 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): 
     var failed = 0
     var unknown = 0
 
-    results.forEach {
-        when (it.result.result) {
-            it.result.expected -> passed++
-            else -> if (it.result.result == ResultType.EXCEPTION) unknown++ else failed++
+    engineResults.results.forEach {
+        when (it.result) {
+            it.expected -> passed++
+            else -> if (it.result == ResultType.EXCEPTION) unknown++ else failed++
         }
     }
 
@@ -107,7 +103,7 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>): 
                 (if (unknown == 0) "" else " ($unknown failed due to exceptions)") +
                 " in ${time / 1000} seconds"
     )
-    return results
+    saveResults(engineResults)
 }
 
 private fun generateTests(): Collection<Test> {
@@ -168,7 +164,7 @@ private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> 
 private fun saveTests(engineName: String, path: String, tests: Collection<Test>) {
     val file = File(Paths.get(path).absolutePathString()).normalize()
     if (file.canWrite())
-        throw Exception("Cannot write to file $path")
+        throw Exception("Cannot write queries to file $path")
     println("Saving the tests for $engineName in $file")
     val writer = file.writer(Charset.defaultCharset())
     val initStr = "Tests generated for engine '$engineName' on ${SimpleDateFormat("dd/M/yyyy hh:mm:ss").format(Date())}"
@@ -211,21 +207,21 @@ private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max
     }
 }
 
-private fun saveResults(results: List<ResultContext>) {
-    for ((engine, tests) in results.groupBy { it.engine }) {
-        for ((version, versionResults) in tests.groupBy { it.version }) {
-            val path = "results/$engine/$version"
-            val dir = File(path)
-            dir.mkdirs()
-            //dir.lastModified()
-            var fileNumber = dir.listFiles()!!.size
-            while (File("$path/$fileNumber.json").exists()) {
-                fileNumber++
-            }
-
-            writeJsonToFile("$path/$fileNumber.json", versionResults.map { it.result })
-        }
+private fun saveResults(results: ResultContext) {
+    var path = "results/${results.engine}/${results.version}"
+    if (File(path).canWrite())
+        throw Exception("Cannot write results to file $path")
+    val dir = File(path)
+    dir.mkdirs()
+    //dir.lastModified()
+    var fileNumber = dir.listFiles()!!.size
+    while (File("$path/$fileNumber.json").exists()) {
+        fileNumber++
     }
+    path += "/$fileNumber.json"
+    println("Saving results for engine '${results.engine}' in $path")
+
+    writeJsonToFile(path, results.results.map { it.result })
 }
 
 private fun writeJsonToFile(filePath: String, results: Any) {
