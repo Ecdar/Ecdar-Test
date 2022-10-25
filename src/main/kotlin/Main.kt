@@ -39,16 +39,11 @@ private fun executeConfigurations() {
 
     for (engine in engines) {
         val sortedTests = sortTests(engine, allTests)
-        if (engine.omitTests == true) { //Omitting tests and saving them
-            val path = engine.testsSavePath ?: "./${engine.name}_tests"
-            saveTests(engine.name, path, sortedTests)
-            println("Executing the tests for ${engine.name} have been omitted")
-            println()
-            continue
-        } else if (engine.testsSavePath != null)
+        if (engine.testsSavePath != null)
             saveTests(engine.name, engine.testsSavePath, sortedTests)
 
-        executeTests(engine, sortedTests)
+        if (engine.enabled)
+            executeTests(engine, sortedTests)
     }
 }
 
@@ -163,7 +158,7 @@ private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> 
 
 private fun saveTests(engineName: String, path: String, tests: Collection<Test>) {
     val file = File(Paths.get(path).absolutePathString()).normalize()
-    if (file.canWrite())
+    if (!file.canWrite() && file.exists())
         throw Exception("Cannot write queries to file $path")
     println("Saving the tests for $engineName in $file")
     val writer = file.writer(Charset.defaultCharset())
@@ -209,8 +204,6 @@ private fun printProgressbar(progress: AtomicInteger, failed: AtomicInteger, max
 
 private fun saveResults(results: ResultContext) {
     var path = "results/${results.engine}/${results.version}"
-    if (File(path).canWrite())
-        throw Exception("Cannot write results to file $path")
     val dir = File(path)
     dir.mkdirs()
     //dir.lastModified()

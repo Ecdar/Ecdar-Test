@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 
 fun parseEngineConfigurations(): List<EngineConfiguration>
-    = ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled }
+    = ArrayList<EngineConfiguration>(Klaxon().parseArray(File("configuration.json"))!!).filter { it.enabled || it.testsSavePath != null}
 
 data class EngineConfiguration (
     val enabled: Boolean,
@@ -34,8 +34,6 @@ data class EngineConfiguration (
     val queryComplexity: Array<Int>?,
     @Json(name = "testTimeout", serializeNull = false)
     val deadline: Long?,
-    @Json(serializeNull = false, name = "omitTesting")
-    val omitTests: Boolean?,
     @Json(serializeNull = false)
     val testsSavePath: String?,
 ) {
