@@ -1,6 +1,6 @@
 import parsing.System
 import tests.Test
-import tests.testgeneration.TestRule
+import tests.testgeneration.*
 
 class TestGenerator {
     private val testGenerators = ArrayList<TestRule>()
