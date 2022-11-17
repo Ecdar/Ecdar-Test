@@ -121,12 +121,12 @@ private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Co
         })
     }
 
-    if (engine.testCount != null) {  //Count
+    if (engine.testBound != null) {  //Count
         out = when (engine.testSorting) {
-            Sorting.FILO -> ArrayList(out.takeLast(engine.testCount))
-            Sorting.FIFO -> ArrayList(out.take(engine.testCount))
-            Sorting.RoundRobin -> getEqualTests(out, engine.testCount)
-            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testCount))
+            Sorting.FILO -> ArrayList(out.takeLast(engine.testBound))
+            Sorting.FIFO -> ArrayList(out.take(engine.testBound))
+            Sorting.RoundRobin -> getEqualTests(out, engine.testBound)
+            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testBound))
         }
     }
     return out

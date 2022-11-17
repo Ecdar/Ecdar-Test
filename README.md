@@ -15,7 +15,7 @@ Requires a configuration file `configuration.json` with information for each eng
         "enabled" : true,
         "verbose": true,
         "testTimeout": 30,
-        "testCount" : 4000,        
+        "testBound" : 4000,        
         "testSorting": "Random",
         "queryComplexity": [0, 1000],
         "testsSavePath": "/path/to/file"
@@ -42,14 +42,14 @@ Requires a configuration file `configuration.json` with information for each eng
 ```
 If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
 
-`testTimeout`, `testCount`, `testSorting`, `queryComplexity`, and `testsSavePath` are all optional attributes.
+`testTimeout`, `testBound`, `testSorting`, `queryComplexity`, and `testsSavePath` are all optional attributes.
 `testTimeout` sets the time limit in seconds for the duration of a test (default=30).
-`testCount` limits the number of tests to execute (default=all).
-`testSorting` determines how to sort the tests if `testCount` is set. There are four different sortings:
-* `Random` (default) - Takes `testCount` generated tests randomly
-* `FILO` - Takes the last `testCount` generated tests
-* `FIFO` - Takes the first `testCount` generated tests
-* `Split` - Takes an equal split of each test-sort by RoundRobin, summing up to no more than `testCount` tests
+`testBound` sets an upper bound of the number of tests to execute (default=all).
+`testSorting` determines how to sort the tests if `testBound` is set. There are four different sortings:
+* `Random` (default) - Takes `testBound` generated tests randomly
+* `FILO` - Takes the last `testBound` generated tests
+* `FIFO` - Takes the first `testBound` generated tests
+* `Split` - Takes an equal split of each test-sort by RoundRobin, summing up to no more than `testBound` tests
 
 `queryComplexity` determines the complexity of the queries in the tests (the number of operators).
 Both the upper and lower bound can be set.

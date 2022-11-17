@@ -27,7 +27,7 @@ data class EngineConfiguration (
     val addresses: List<String> = (port until port + processes).map { "${ip}:$it" },
     val ports: List<Int> = (port until port + processes).toList(),
     @Json(serializeNull = false)
-    val testCount: Int?,
+    val testBound: Int?,
     @Json(serializeNull = false)
     val testSorting: Sorting?,
     @Json(serializeNull = false)
