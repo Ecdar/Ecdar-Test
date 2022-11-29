@@ -4,6 +4,8 @@ import ProofSearcher
 import parsing.System
 
 class RefinementTransitivity : Proof() {
+    override val kind = ProofKind.RefinementTransitivity
+
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         for (lhs in component.refinesThis) {
             if (component.inputs.containsAll(lhs.inputs) && component.outputs == lhs.outputs){ // S1 inputs ⊆ S2 inputs and S1 outputs = S2 outputs
@@ -20,6 +22,8 @@ class RefinementTransitivity : Proof() {
         if (lhs.refines(rhs)) {
             ctx.setDirty(lhs, this)
             ctx.setDirty(rhs, this)
+            markComp(lhs)
+            markComp(rhs)
         }
     }
 }

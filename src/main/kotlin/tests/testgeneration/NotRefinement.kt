@@ -23,6 +23,7 @@ class NotRefinement : TestRule {
         NotSatisfiedTest(
             "NotRefines",
             system.getProjectFolder(),
-            "refinement: ${system.getName()} <= ${other.getName()}"
+            "refinement: ${system.getName()} <= ${other.getName()}",
+            system.relatedProofs
         )
 }

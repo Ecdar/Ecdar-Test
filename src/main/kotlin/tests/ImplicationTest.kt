@@ -3,16 +3,16 @@ package tests
 import TestResult
 
 //This test acts like the implication logical operator i.e. precondition -> mainTest
-class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
+class ImplicationTest(precondition: SingleTest, mainTest: SingleTest, relatedProofs: Int) :
     MultiTest(
         mainTest.testSuite,
         mainTest.projectPath,
         "(${precondition.query}) implies (${mainTest.query})",
-        precondition, mainTest
+        relatedProofs, precondition, mainTest
     ) {
 
     override fun toSingleTest(): SingleTest {
-        return SatisfiedTest(this.testSuite, this.projectPath, this.query)
+        return SatisfiedTest(this.testSuite, this.projectPath, this.query, this.relatedProofs)
     }
 
     override fun getResult(results: List<TestResult>): TestResult {

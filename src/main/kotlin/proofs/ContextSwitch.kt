@@ -7,6 +7,7 @@ import parsing.Quotient
 import parsing.System
 
 class ContextSwitch : Proof() {
+    override val kind = ProofKind.ContextSwitch
     //override val maxContribution: Int = 4000
     // A <= B and B <= A imply C[A] == C[B] (A can be replaced by B in any context)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
@@ -21,7 +22,10 @@ class ContextSwitch : Proof() {
                         other.refinesThis.addAll(component.refinesThis) or
                         other.notRefinesThis.addAll(component.notRefinesThis)
 
-                if (changed) ctx.setDirty(other, this)
+                if (changed) {
+                    ctx.setDirty(other, this)
+                    markComp(other)
+                }
 
                 for (parent in component.parents.toList()) {
                     replace(component, other, parent, ctx)

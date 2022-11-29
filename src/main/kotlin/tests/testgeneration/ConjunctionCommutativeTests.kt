@@ -51,7 +51,8 @@ class ConjunctionCommutativeTests : TestRule {
         return SatisfiedTest(
             "ConjCommutativeRefinement",
             original.getProjectFolder(),
-            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}"
+            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}",
+            original.relatedProofs
         )
     }
 }

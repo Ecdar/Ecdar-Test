@@ -5,6 +5,7 @@ import facts.RelationLoader
 import parsing.EngineConfiguration
 import parsing.Sorting
 import parsing.parseEngineConfigurations
+import proofs.ProofKind
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
@@ -104,12 +105,31 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
 private fun generateTests(): Collection<Test> {
     val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
     //ProofLimiter(3).limit(allRelations)
+/*
+    allRelations.forEach {
+        println(it)
+    }
+
+    println(allRelations.size)
+    println(RelationLoader.relations.size)
+ */
     return TestGenerator().addAllTests().generateTests(allRelations)
 }
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
     val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
     var out = ArrayList(tests)
+
+    println("Test count: " + out.size)
+    engine.blackList?.let { it ->
+        val blacklisting = it.sumOf {it.value}
+        println(blacklisting)
+        // TODO: Check should be fixed
+        // This removes a test even if it has only one match. Not sure if this is a desired outcome
+        out = ArrayList(out.filter { test -> test.relatedProofs and blacklisting == 0})
+        //out = ArrayList(out.filter { test -> test.relatedProofs and blacklisting != test.relatedProofs})
+    }
+    println("Test count: " + out.size)
 
     if (engine.queryComplexity != null) { //Query Complexity
         val (lower, upper) = engine.bounds()
@@ -121,14 +141,15 @@ private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Co
         })
     }
 
-    if (engine.testCount != null) {  //Count
+    if (engine.testBound != null) {  //Bound
         out = when (engine.testSorting) {
-            Sorting.FILO -> ArrayList(out.takeLast(engine.testCount))
-            Sorting.FIFO -> ArrayList(out.take(engine.testCount))
-            Sorting.RoundRobin -> getEqualTests(out, engine.testCount)
-            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testCount))
+            Sorting.FILO -> ArrayList(out.takeLast(engine.testBound))
+            Sorting.FIFO -> ArrayList(out.take(engine.testBound))
+            Sorting.RoundRobin -> getEqualTests(out, engine.testBound)
+            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testBound))
         }
     }
+
     return out
 }
 

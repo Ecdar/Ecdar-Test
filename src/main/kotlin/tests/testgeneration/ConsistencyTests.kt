@@ -29,13 +29,15 @@ class ConsistencyTests : TestRule {
         SatisfiedTest(
             "Consistency",
             system.getProjectFolder(),
-            "consistency: ${system.getName()}"
+            "consistency: ${system.getName()}",
+            system.relatedProofs
         )
 
     private fun createNonConsistencyTest(system: System) =
         NotSatisfiedTest(
             "NonConsistency",
             system.getProjectFolder(),
-            "consistency: ${system.getName()}"
+            "consistency: ${system.getName()}",
+            system.relatedProofs
         )
 }
