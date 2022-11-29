@@ -3,6 +3,7 @@ package parsing
 import facts.RelationLoader.getInputs
 import facts.RelationLoader.getOutputs
 import facts.RelationLoader.prefixMap
+import proofs.ProofKind
 import java.util.*
 
 interface System {
@@ -18,6 +19,7 @@ interface System {
     var isLocallyConsistent: Optional<Boolean>
     var inputs: HashSet<String>
     var outputs: HashSet<String>
+    var relatedProofs: Int
 
     fun isKnownLocallyConsistent(): Boolean {
         return isLocallyConsistent.orElse(false)
@@ -82,6 +84,7 @@ class Component(val prefix: String, val comp: String) : System {
         get() = 0
     override var components = 1
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
+    override var relatedProofs: Int = 0
 
 
     override fun sameAs(other: System): Boolean {
@@ -125,6 +128,8 @@ class Quotient(var T: System, var S: System) : System {
     override var notRefinesThis = HashSet<System>()
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
+    override var relatedProofs: Int = 0
+
     override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
     override val components: Int
@@ -230,7 +235,9 @@ class Quotient(var T: System, var S: System) : System {
     override var notRefinesThis = HashSet<System>()
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
-    override val depth: Int
+    override var relatedProofs: Int = 0
+
+        override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
     override val components: Int
         get() = children.sumOf { it.components }
@@ -332,6 +339,8 @@ class Composition : System {
     override var notRefinesThis = HashSet<System>()
     override var thisNotRefines = HashSet<System>()
     override var parents = HashSet<System>()
+    override var relatedProofs: Int = 0
+
     override val components: Int
         get() = children.sumOf { it.components }
     override val depth: Int

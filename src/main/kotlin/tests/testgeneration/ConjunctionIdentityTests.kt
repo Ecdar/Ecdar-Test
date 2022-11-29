@@ -32,12 +32,14 @@ class ConjunctionIdentityTests : TestRule {
         return ImplicationTest(SatisfiedTest(
             "ConjIdentityRefinement::Precondition",
             system.getProjectFolder(),
-            "consistency: $first"
+            "consistency: $first",
+            system.relatedProofs
         ), SatisfiedTest(
             "ConjIdentityRefinement",
             system.getProjectFolder(),
-            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}"
-        ))
+            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}",
+            system.relatedProofs or other.relatedProofs
+        ), system.relatedProofs or other.relatedProofs)
 
     }
 

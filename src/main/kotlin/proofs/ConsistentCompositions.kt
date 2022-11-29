@@ -6,11 +6,15 @@ import parsing.System
 import java.util.*
 
 class ConsistentCompositions : Proof() {
+    override val kind = ProofKind.ConsistentCompositions
+
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         if (component.isLocallyConsistent.isEmpty && component is Composition) {
             calculateConsistency(component, ctx)
+            markComp(component)
         } else if (component.isKnownLocallyConsistent() && component is Composition) {
             makeChildrenConsistent(component, ctx)
+            markComp(component)
         }
     }
 

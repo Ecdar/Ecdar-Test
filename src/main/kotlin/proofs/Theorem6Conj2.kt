@@ -5,6 +5,7 @@ import parsing.Conjunction
 import parsing.System
 
 class Theorem6Conj2 : Proof() {
+    override val kind = ProofKind.Theorem6Conj2
     //HSCC.Theorem6.part2, locally consistent S, U and T sharing the same alphabet: (U <= S) and (U <= T) implies U <= (S && T)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         if (component.thisRefines.size > 1) {
@@ -20,6 +21,8 @@ class Theorem6Conj2 : Proof() {
                         if (component.refines(newComp)) {
                             ctx.setDirty(newComp, this)
                             ctx.setDirty(component, this)
+                            markComp(newComp)
+                            markComp(component)
                         }}
                     }
                 }

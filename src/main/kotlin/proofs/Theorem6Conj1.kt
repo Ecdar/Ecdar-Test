@@ -6,6 +6,8 @@ import parsing.Conjunction
 import parsing.System
 
 class Theorem6Conj1 : Proof() {
+    override val kind = ProofKind.Theorem6Conj1
+
     //HSCC.Theorem6.part1, locally consistent S and T sharing the same alphabet : S ∧ T ≤ S and S ∧ T ≤ T (∧ is the same as &&)
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
         //TODO: we cant currently apply this to compositions because the ConsistentCompositions adds too many
@@ -37,6 +39,7 @@ class Theorem6Conj1 : Proof() {
         for (child in parent.children) {
             if (parent.refines(child)) {
                 ctx.setDirty(child, this)
+                markComp(child)
             }
         }
     }

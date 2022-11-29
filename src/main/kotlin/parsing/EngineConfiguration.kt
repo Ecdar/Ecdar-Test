@@ -2,6 +2,7 @@ package parsing
 
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
+import proofs.ProofKind
 import java.io.File
 import java.io.IOException
 import java.net.ServerSocket
@@ -36,6 +37,8 @@ data class EngineConfiguration (
     val deadline: Long?,
     @Json(serializeNull = false)
     val testsSavePath: String?,
+    @Json(serializeNull = false)
+    val blackList: List<ProofKind>?,
 ) {
     private var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)
@@ -140,7 +143,7 @@ data class EngineConfiguration (
         return path == null || parameterExpression == null
     }
 
-    public fun bounds(): Pair<Int, Int> {
+    fun bounds(): Pair<Int, Int> {
         val upper: Int; val lower: Int
         if (this.queryComplexity!!.size >= 2) {
             upper = this.queryComplexity[1]

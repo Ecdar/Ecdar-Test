@@ -34,35 +34,38 @@ class ImpliedRefinementTest: TestRule {
         val precondition = createPreconditionTest(system)
         val mainTest = createSelfRefinementTest(system)
 
-        return ImplicationTest(precondition, mainTest)
+        return ImplicationTest(precondition, mainTest, system.relatedProofs)
     }
 
     private fun createTest(lhs: System, rhs: System, preconditionSystem: System): Test {
         val precondition = createPreconditionTest(preconditionSystem)
         val mainTest = createRefinementTest(lhs, rhs)
 
-        return ImplicationTest(precondition, mainTest)
+        return ImplicationTest(precondition, mainTest, mainTest.relatedProofs)
     }
 
     private fun createPreconditionTest(system: System) =
         SatisfiedTest(
             "ImpliedRefinement::Precondition",
             system.getProjectFolder(),
-            "consistency: ${system.getName()}"
+            "consistency: ${system.getName()}",
+            system.relatedProofs
         )
 
     private fun createSelfRefinementTest(system: System) =
         SatisfiedTest(
             "ImpliedSelfRefinement",
             system.getProjectFolder(),
-            "refinement: ${system.getName()} <= ${system.getName()}"
+            "refinement: ${system.getName()} <= ${system.getName()}",
+            system.relatedProofs
         )
 
     private fun createRefinementTest(lhs: System, rhs: System) =
         SatisfiedTest(
             "ImpliedRefinement",
             lhs.getProjectFolder(),
-            "refinement: ${lhs.getName()} <= ${rhs.getName()}"
+            "refinement: ${lhs.getName()} <= ${rhs.getName()}",
+            lhs.relatedProofs or rhs.relatedProofs
         )
 
 
