@@ -67,7 +67,14 @@ dependencies {
 }
 
 
-
+sourceSets {
+    main {
+        proto {
+            // In addition to the default 'src/main/proto'
+            srcDir 'src/main/Ecdar-ProtoBuf/'
+        }
+    }
+}
 
 protobuf {
     protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
@@ -78,7 +85,6 @@ protobuf {
         all()*.plugins { grpc {} }
     }
 }
-
 
 generateGrammarSource {
     maxHeapSize = "64m"
