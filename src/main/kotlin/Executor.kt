@@ -67,33 +67,40 @@ class Executor(val engineConfig: EngineConfiguration) {
                 try {
                     val componentUpdate = componentUpdateFromPath(test.projectPath)
 
-                    try {
-                        stubs[stubId].updateComponents(componentUpdate)
+                    val query = QueryProtos.QueryRequest.newBuilder()
+                        .setQueryId(queryId)
+                        .setQuery(test.query)
+                        .setComponentsInfo(componentUpdate)
+                        .build()
+                    //val result = stubs[stubId].withDeadlineAfter(deadline ?: 30, TimeUnit.SECONDS).sendQuery(query)
+
+
+                    val result = try {
+                        stubs[stubId].sendQuery(query)// .updateComponents(componentUpdate)
                     }
                     catch (e: StatusRuntimeException) {
                         if (e.status.code == Status.Code.UNAVAILABLE) {
                             resetStub(stubId)
-                            stubs[stubId].withWaitForReady().updateComponents(componentUpdate)
+                            stubs[stubId].withWaitForReady().sendQuery(query) //.updateComponents(componentUpdate)
                         } else {
                             throw e
                         }
                     }
                     catch (e: IOException) {
                         resetStub(stubId)
-                        stubs[stubId].withWaitForReady().updateComponents(componentUpdate)
+                        stubs[stubId].withWaitForReady().sendQuery(query)// .updateComponents(componentUpdate)
                     }
-
-                    val query = QueryProtos.Query.newBuilder().setId(queryId).setQuery(test.query).build()
-                    val result = stubs[stubId].withDeadlineAfter(deadline ?: 30, TimeUnit.SECONDS).sendQuery(query)
-
 
                     if (result.hasError()) {
                         throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
                     }
-
+/* TODO: Hanlde failures
                     success = (result.hasRefinement() && result.refinement.success)
                             || (result.hasConsistency() && result.consistency.success)
                             || (result.hasDeterminism() && result.determinism.success)
+
+ */
+                    success = result.hasSuccess()
                 }
                 finally {
                     usedStubs[stubId].unlock()
@@ -118,17 +125,20 @@ class Executor(val engineConfig: EngineConfiguration) {
         engineConfig.reset(stubId)
     }
 
-    private fun componentUpdateFromPath(path: String): QueryProtos.ComponentsUpdateRequest {
+    private fun componentUpdateFromPath(path: String): ComponentProtos.ComponentsInfo {
         val file = File(path)
         return if (File(path).isFile) { //If XML
             val component = ComponentProtos.Component.newBuilder().setXml(file.readText()).build()
-            QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
+          //  QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).build()
         } else { //If json (e.g directory)
             val file = File(path.plus("/Components"))
             val components = file.listFiles()!!//.filter { it.endsWith(".json") }
                 .map { ComponentProtos.Component.newBuilder().setJson(it.readText()).build() }
             //throw Exception("Only ${components.size} comps")
-            QueryProtos.ComponentsUpdateRequest.newBuilder().addAllComponents(components).build()
+        //    QueryProtos.ComponentsUpdateRequest.newBuilder().addAllComponents(components).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components).build()
+
         }
     }
 
