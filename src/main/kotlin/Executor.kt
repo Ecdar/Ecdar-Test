@@ -10,7 +10,6 @@ import tests.SingleTest
 import tests.Test
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
@@ -66,13 +65,16 @@ class Executor(val engineConfig: EngineConfiguration) {
 
                 try {
                     val componentUpdate = componentUpdateFromPath(test.projectPath)
+                    val settings = QueryProtos.QueryRequest.Settings.newBuilder()
+                        .setDisableClockReduction(false)
+                        .build()
 
                     val query = QueryProtos.QueryRequest.newBuilder()
-                        .setQueryId(queryId)
-                        .setQuery(test.query)
-                        .setComponentsInfo(componentUpdate)
-                        .build()
-                    //val result = stubs[stubId].withDeadlineAfter(deadline ?: 30, TimeUnit.SECONDS).sendQuery(query)
+                            .setQueryId(queryId)
+                            .setQuery(test.query)
+                            .setComponentsInfo(componentUpdate)
+                            .setSettings(settings)
+                            .build()
 
 
                     val result = try {
@@ -94,7 +96,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                     if (result.hasError()) {
                         throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
                     }
-/* TODO: Hanlde failures
+/* TODO: Handle failures
                     success = (result.hasRefinement() && result.refinement.success)
                             || (result.hasConsistency() && result.consistency.success)
                             || (result.hasDeterminism() && result.determinism.success)
@@ -130,14 +132,12 @@ class Executor(val engineConfig: EngineConfiguration) {
         return if (File(path).isFile) { //If XML
             val component = ComponentProtos.Component.newBuilder().setXml(file.readText()).build()
           //  QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
-            ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).setComponentsHash(component.hashCode()).build()
         } else { //If json (e.g directory)
-            val file = File(path.plus("/Components"))
-            val components = file.listFiles()!!//.filter { it.endsWith(".json") }
+            val localFile = File(path.plus("/Components"))
+            val components = localFile.listFiles()!!//.filter { it.endsWith(".json") }
                 .map { ComponentProtos.Component.newBuilder().setJson(it.readText()).build() }
-            //throw Exception("Only ${components.size} comps")
-        //    QueryProtos.ComponentsUpdateRequest.newBuilder().addAllComponents(components).build()
-            ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components).setComponentsHash(components.hashCode()).build()
 
         }
     }

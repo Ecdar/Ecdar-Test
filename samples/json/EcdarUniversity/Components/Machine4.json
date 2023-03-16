@@ -1,5 +1,5 @@
 {
-  "name": "Machine",
+  "name": "Machine4",
   "declarations": "clock y;",
   "locations": [
     {
@@ -33,7 +33,7 @@
   ],
   "edges": [
     {
-      "id": "E25",
+      "id": "E1",
       "group": "",
       "sourceLocation": "L4",
       "targetLocation": "L5",
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "id": "E26",
+      "id": "E2",
       "group": "",
       "sourceLocation": "L4",
       "targetLocation": "L5",
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "id": "E27",
+      "id": "E3",
       "group": "",
       "sourceLocation": "L5",
       "targetLocation": "L4",
@@ -110,7 +110,7 @@
       ]
     },
     {
-      "id": "E28",
+      "id": "E4",
       "group": "",
       "sourceLocation": "L4",
       "targetLocation": "L4",
@@ -138,13 +138,13 @@
       ]
     },
     {
-      "id": "E29",
+      "id": "E5",
       "group": "",
       "sourceLocation": "L5",
       "targetLocation": "L5",
       "status": "OUTPUT",
       "select": "",
-      "guard": "y\u003e\u003d2",
+      "guard": "y\u003c0",
       "update": "",
       "sync": "tea",
       "isLocked": false,

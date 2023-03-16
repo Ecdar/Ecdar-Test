@@ -30,7 +30,7 @@ repositories {
     jcenter()
 }
 
-def grpcVersion = '1.41.0' // CURRENT_GRPC_VERSION
+def grpcVersion = '1.52.1' // CURRENT_GRPC_VERSION
 def protobufVersion = '3.17.2'
 def protocVersion = protobufVersion
 
@@ -56,11 +56,11 @@ dependencies {
 
 
     // examples/advanced need this for JsonFormat
-    // implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
+    implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
 
-    //runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    runtimeOnly "io.grpc:grpc-netty-shaded:$grpcVersion"
 
-    testImplementation "io.grpc:grpc-testing:${grpcVersion}"
+    testImplementation "io.grpc:grpc-testing:$grpcVersion"
 }
 
 protobuf {
