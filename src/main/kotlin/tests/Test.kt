@@ -1,5 +1,6 @@
 package tests
 
+import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
 import TestResult
 
 abstract class Test(val testSuite: String, val projectPath: String) {
@@ -17,8 +18,9 @@ abstract class Test(val testSuite: String, val projectPath: String) {
     }
 }
 
-open class SingleTest(testSuite: String, projectPath: String, val query: String) : Test(testSuite, projectPath) {
-    open fun getResult(success: Boolean): TestResult { throw error("Unimplemented")}
+abstract class SingleTest(testSuite: String, projectPath: String, val query: String) : Test(testSuite, projectPath) {
+    abstract fun getResult(success: Boolean): TestResult
+    abstract fun getResult(result: ResultCase): TestResult
     override fun queries(): List<String> {
         return listOf(query)
     }

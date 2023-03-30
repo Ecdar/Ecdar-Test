@@ -12,7 +12,7 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-
+import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
 
 class Executor(val engineConfig: EngineConfiguration) {
 
@@ -27,7 +27,7 @@ class Executor(val engineConfig: EngineConfiguration) {
 
     private val stubs = channels.map { EcdarBackendGrpc.newBlockingStub(it) }
     var queryId = AtomicInteger(0)
-    var usedStubs = (0 until numProcesses).map { ReentrantLock() }
+    private var usedStubs = (0 until numProcesses).map { ReentrantLock() }
 
     fun runTest(test: Test, deadline: Long?): TestResult {
         try {
@@ -50,7 +50,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                 val queryId = queryId.getAndAdd(1)
                 var stubId = 0
 
-                val success: Boolean?
+                val success: ResultCase?
 
                 while (!usedStubs[stubId].tryLock()) {
                     stubId += 1
@@ -93,16 +93,15 @@ class Executor(val engineConfig: EngineConfiguration) {
                         stubs[stubId].withWaitForReady().sendQuery(query)// .updateComponents(componentUpdate)
                     }
 
-                    if (result.hasError()) {
-                        throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
+                    success = when (val r = result.resultCase) {
+                        ResultCase.PARSING_ERROR ->
+                            throw Exception("Query: ${test.query} in ${test.projectPath} lead to parsing-error: ${result.error}")
+                        ResultCase.ERROR ->
+                            throw Exception("Query: ${test.query} in ${test.projectPath} lead to error: ${result.error}")
+                        ResultCase.RESULT_NOT_SET ->
+                            throw Exception("Query: ${test.query} in ${test.projectPath} could not produce result. Error: ${result.error}")
+                        else -> r
                     }
-/* TODO: Handle failures
-                    success = (result.hasRefinement() && result.refinement.success)
-                            || (result.hasConsistency() && result.consistency.success)
-                            || (result.hasDeterminism() && result.determinism.success)
-
- */
-                    success = result.hasSuccess()
                 }
                 finally {
                     usedStubs[stubId].unlock()
@@ -113,9 +112,8 @@ class Executor(val engineConfig: EngineConfiguration) {
                 return res
             }
         } catch (e: Throwable) {
-            if (test is MultiTest) {
+            if (test is MultiTest)
                 throw Exception("Did not except MultiTest to throw error $e")
-            }
             val r = TestResult(test.toSingleTest(), ResultType.EXCEPTION, ResultType.NON_EXCEPTION, listOf())
             r.exception = e.toString()
             return r
@@ -138,8 +136,6 @@ class Executor(val engineConfig: EngineConfiguration) {
             val components = localFile.listFiles()!!//.filter { it.endsWith(".json") }
                 .map { ComponentProtos.Component.newBuilder().setJson(it.readText()).build() }
             ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components).setComponentsHash(components.hashCode()).build()
-
         }
     }
-
 }

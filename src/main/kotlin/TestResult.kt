@@ -1,6 +1,7 @@
+import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
+import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase.*
 import com.beust.klaxon.Json
 import tests.SingleTest
-import tests.Test
 
 const val ANSI_RESET = "\u001B[0m"
 const val ANSI_BLACK = "\u001B[30m"
@@ -25,6 +26,13 @@ enum class ResultType {
                 false -> UNSATISFIED
             }
         }
+        fun from(result: ResultCase) : ResultType {
+            return when (result) {
+                SUCCESS, COMPONENT, REACHABILITY, IMPLEMENTATION -> SATISFIED
+                CONSISTENCY, DETERMINISM, REFINEMENT, REACHABILITY_PATH,
+                PARSING_ERROR, MODEL, ERROR, RESULT_NOT_SET -> UNSATISFIED
+            }
+        }
     }
 
     fun colored(): String {
@@ -42,7 +50,7 @@ class TestResult(
     @Json(index=7) val test: SingleTest,
     @Json(index=4) val result: ResultType,
     @Json(index=5) val expected: ResultType,
-    @Json(index=8) val _inner: List<TestResult>,
+    @Json(index=8) val inner: List<TestResult>,
 ) {
     @Json(index=3) var time: Double? = null
     @Json(index=6) var exception: String? = null

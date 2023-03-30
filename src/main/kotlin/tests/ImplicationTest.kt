@@ -36,4 +36,4 @@ class ImplicationTest(precondition: SingleTest, mainTest: SingleTest) :
 
         return TestResult(this.toSingleTest(), ResultType.NON_EXCEPTION, ResultType.NON_EXCEPTION, listOf(pre, post))
     }
-}   
+}

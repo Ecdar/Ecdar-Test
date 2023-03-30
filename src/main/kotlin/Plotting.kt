@@ -47,7 +47,7 @@ fun getVersionMean(version: String) : List<TestResult> {
 fun getFile(file: String) :List<TestResult> {
     val path = "results/$file"
     //return parseResults(path).filter { it.result == it.expected }
-    return parseResults(path).flatMap { it._inner.ifEmpty { listOf(it) } }.filter {it.result != ResultType.EXCEPTION}
+    return parseResults(path).flatMap { it.inner.ifEmpty { listOf(it) } }.filter {it.result != ResultType.EXCEPTION}
 }
 
 fun combine(results: List<List<TestResult>>) : List<TestResult> {
