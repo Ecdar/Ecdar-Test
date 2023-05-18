@@ -81,11 +81,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                         if (e.status.code == Status.Code.UNAVAILABLE) {
                             resetStub(stubId)
                             stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
-                        } else if (e.status.code == Status.Code.DEADLINE_EXCEEDED) {
-                            resetStub(stubId)
-                            throw e
-                        }
-                        else {
+                        } else {
                             throw e
                         }
                     }
