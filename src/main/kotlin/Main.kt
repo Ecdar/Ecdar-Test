@@ -62,7 +62,7 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     val time = measureTimeMillis {
         tests.parallelStream().forEach {
 
-            val testResult = executor.runTest(it, engine.deadline)
+            val testResult = executor.runTest(it, engine.deadline ?: 30)
 
             engineResults.results.add(testResult)
 

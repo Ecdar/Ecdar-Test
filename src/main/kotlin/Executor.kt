@@ -13,6 +13,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
+import java.util.concurrent.TimeUnit
 
 class Executor(val engineConfig: EngineConfiguration) {
 
@@ -29,7 +30,7 @@ class Executor(val engineConfig: EngineConfiguration) {
     var queryId = AtomicInteger(0)
     private var usedStubs = (0 until numProcesses).map { ReentrantLock() }
 
-    fun runTest(test: Test, deadline: Long?): TestResult {
+    fun runTest(test: Test, deadline: Long): TestResult {
         try {
             if (test is MultiTest) {
                 val resses = test.tests.map { runTest(it, deadline) }
@@ -65,10 +66,7 @@ class Executor(val engineConfig: EngineConfiguration) {
 
                 try {
                     val componentUpdate = componentUpdateFromPath(test.projectPath)
-                    val settings = QueryProtos.QueryRequest.Settings.newBuilder()
-                        .setDisableClockReduction(false)
-                        .build()
-
+                    val settings = engineConfig.settings
                     val query = QueryProtos.QueryRequest.newBuilder()
                             .setQueryId(queryId)
                             .setQuery(test.query)
@@ -76,21 +74,24 @@ class Executor(val engineConfig: EngineConfiguration) {
                             .setSettings(settings)
                             .build()
 
-
                     val result = try {
-                        stubs[stubId].sendQuery(query)// .updateComponents(componentUpdate)
+                        stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
                     }
                     catch (e: StatusRuntimeException) {
                         if (e.status.code == Status.Code.UNAVAILABLE) {
                             resetStub(stubId)
-                            stubs[stubId].withWaitForReady().sendQuery(query) //.updateComponents(componentUpdate)
-                        } else {
+                            stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
+                        } else if (e.status.code == Status.Code.DEADLINE_EXCEEDED) {
+                            resetStub(stubId)
+                            throw e
+                        }
+                        else {
                             throw e
                         }
                     }
                     catch (e: IOException) {
                         resetStub(stubId)
-                        stubs[stubId].withWaitForReady().sendQuery(query)// .updateComponents(componentUpdate)
+                        stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
                     }
 
                     success = when (val r = result.resultCase) {

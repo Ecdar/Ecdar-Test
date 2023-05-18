@@ -1,5 +1,6 @@
 package parsing
 
+import EcdarProtoBuf.QueryProtos.QueryRequest.Settings
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import java.io.File
@@ -36,6 +37,10 @@ data class EngineConfiguration (
     val deadline: Long?,
     @Json(serializeNull = false)
     val testsSavePath: String?,
+    @Json(name = "gRPCSettings", serializeNull = false)
+    private val _settings: DummySettings = DummySettings(),
+    @Json(ignored = true)
+    val settings: Settings = _settings.getSettings(),
 ) {
     private var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)
@@ -155,6 +160,15 @@ data class EngineConfiguration (
 
         return Pair(lower, upper)
     }
+}
+
+data class DummySettings(
+    @Json(name = "disable-clock-reduction", serializeNull = false)
+    val disableClockReduction: Boolean = true,
+) {
+    fun getSettings(): Settings = Settings.newBuilder()
+        .setDisableClockReduction(disableClockReduction)
+        .build()
 }
 
 enum class Sorting {
