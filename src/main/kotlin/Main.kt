@@ -50,11 +50,11 @@ private fun executeConfigurations() {
     }
 }
 
-private fun partitionTests(tests: Collection<Test>, num: Int): List<Collection<Test>> {
+fun Collection<Test>.partitionTests(num: Int): List<Collection<Test>> {
     val out = (0 until num).map {java.util.ArrayList<Test>()}
     var i = 0
 
-    tests.sortedBy { t -> t.queries().sumOf { q ->
+    this.sortedBy { t -> t.queries().sumOf { q ->
         q.occurrences(operators)
     }}.forEach { t ->
         out[i].add(t)
@@ -72,68 +72,17 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     println()
     println("Running $numTests tests on engine \"${engine.name}\"")
 
-    val parTests = partitionTests(tests, engine.processes)
-
-    //val executor = Executor(engine)
-    /*
-    val executors: List<Executor> =
-        (0 until engine.processes).map {
-            Executor(engine.addresses[it], engine.deadline, engine.path!!, engine.ip, engine.port+it,
-                engine.parameterExpression!!, engine.settings)
-        }
-     */
+    val parTests = tests.partitionTests(engine.processes)
 
     val executorTestPair: List<Pair<Executor, Collection<Test>>> =
         (0 until engine.processes).map {
-            Pair(Executor(engine.addresses[it], engine.deadline, engine.path!!, engine.ip, engine.port+it,
-                engine.parameterExpression!!, engine.settings), parTests[it])
+            Pair(Executor(engine, engine.addresses[it], engine.port+it), parTests[it])
         }
-
 
     val t = printProgressbar(progress, failedTests, numTests)
-    //tests.par
     val time = measureTimeMillis {
-        executorTestPair.parallelStream().forEach { (executor, tests) ->
-            tests.parallelStream().forEach {
-
-                val testResult = executor.runTest(it)
-
-                engineResults.results.add(testResult)
-
-                progress.getAndAdd(1)
-
-                if (testResult.result != testResult.expected) {
-                    if (engine.verbose == true) {
-                        print("\r") // Replace the progress bar
-                        printTestResult(testResult)
-                    }
-                    failedTests.getAndAdd(1)
-                }
-            }
-            println(executor)
-        }
-        /*
-        tests.parallelStream().forEach {
-
-            val testResult = executors[0].runTest(it)
-
-            engineResults.results.add(testResult)
-
-            progress.getAndAdd(1)
-
-            if (testResult.result != testResult.expected) {
-                if (engine.verbose == true) {
-                    print("\r") // Replace the progress bar
-                    printTestResult(testResult)
-                }
-                failedTests.getAndAdd(1)
-            }
-        }
-         */
+        executorTestPair.parallelStream().forEach { (executor, tests) -> executor.execute(tests, engineResults.results, progress, failedTests) }
     }
-    //executors.forEach {e -> e.terminate()}
-    executorTestPair.forEach {(e, _) -> e.terminate()}
-
 
     t.join()
 
