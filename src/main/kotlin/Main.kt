@@ -20,6 +20,9 @@ import kotlin.io.path.absolutePathString
 import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
 
+val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
+
+
 fun main() {
     val time = measureTimeMillis { executeConfigurations() }
 
@@ -47,6 +50,20 @@ private fun executeConfigurations() {
     }
 }
 
+private fun partitionTests(tests: Collection<Test>, num: Int): List<Collection<Test>> {
+    val out = (0 until num).map {java.util.ArrayList<Test>()}
+    var i = 0
+
+    tests.sortedBy { t -> t.queries().sumOf { q ->
+        q.occurrences(operators)
+    }}.forEach { t ->
+        out[i].add(t)
+        i = if (i >= num-1) 0 else i+1
+    }
+
+    return out
+}
+
 private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     val engineResults = ResultContext(engine.name, engine.version, ConcurrentLinkedQueue())
     val numTests = tests.size
@@ -55,14 +72,50 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     println()
     println("Running $numTests tests on engine \"${engine.name}\"")
 
-    val executor = Executor(engine)
+    val parTests = partitionTests(tests, engine.processes)
+
+    //val executor = Executor(engine)
+    /*
+    val executors: List<Executor> =
+        (0 until engine.processes).map {
+            Executor(engine.addresses[it], engine.deadline, engine.path!!, engine.ip, engine.port+it,
+                engine.parameterExpression!!, engine.settings)
+        }
+     */
+
+    val executorTestPair: List<Pair<Executor, Collection<Test>>> =
+        (0 until engine.processes).map {
+            Pair(Executor(engine.addresses[it], engine.deadline, engine.path!!, engine.ip, engine.port+it,
+                engine.parameterExpression!!, engine.settings), parTests[it])
+        }
+
 
     val t = printProgressbar(progress, failedTests, numTests)
-
+    //tests.par
     val time = measureTimeMillis {
+        executorTestPair.parallelStream().forEach { (executor, tests) ->
+            tests.parallelStream().forEach {
+
+                val testResult = executor.runTest(it)
+
+                engineResults.results.add(testResult)
+
+                progress.getAndAdd(1)
+
+                if (testResult.result != testResult.expected) {
+                    if (engine.verbose == true) {
+                        print("\r") // Replace the progress bar
+                        printTestResult(testResult)
+                    }
+                    failedTests.getAndAdd(1)
+                }
+            }
+            println(executor)
+        }
+        /*
         tests.parallelStream().forEach {
 
-            val testResult = executor.runTest(it, engine.deadline ?: 30)
+            val testResult = executors[0].runTest(it)
 
             engineResults.results.add(testResult)
 
@@ -76,8 +129,11 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
                 failedTests.getAndAdd(1)
             }
         }
-        engine.terminate()
+         */
     }
+    //executors.forEach {e -> e.terminate()}
+    executorTestPair.forEach {(e, _) -> e.terminate()}
+
 
     t.join()
 
@@ -108,7 +164,6 @@ private fun generateTests(): Collection<Test> {
 }
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
-    val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
     var out = ArrayList(tests)
 
     if (engine.queryComplexity != null) { //Query Complexity

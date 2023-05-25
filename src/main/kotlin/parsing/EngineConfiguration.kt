@@ -34,7 +34,7 @@ data class EngineConfiguration (
     @Json(serializeNull = false)
     val queryComplexity: Array<Int>?,
     @Json(name = "testTimeout", serializeNull = false)
-    val deadline: Long?,
+    val deadline: Long = 30,
     @Json(serializeNull = false)
     val testsSavePath: String?,
     @Json(name = "gRPCSettings", serializeNull = false)
@@ -44,34 +44,6 @@ data class EngineConfiguration (
 ) {
     private var procs : MutableList<Process>? = null
     var alive : AtomicBoolean = AtomicBoolean(true)
-
-    fun initialize() {
-        if (procs==null) {
-            if (isExternal()) {
-                println("Expecting external engine on address $ip:$port due to missing executable path and parameter expression in engine configuration...")
-                return
-            }
-            procs = ports.map{
-                processFromPort(it)
-            }.toMutableList()
-
-            // Add shutdown hook to clean up processes
-            class ShutDownTask : Thread() {
-                override fun run() {
-                    alive.set(false)
-                    sleep(100)
-                    //println("Shutting down...")
-                    terminate()
-                }
-            }
-
-            Runtime.getRuntime().addShutdownHook(ShutDownTask())
-
-            Thread.sleep(3_000)
-        }
-
-
-    }
 
     private fun processFromPort(port: Int): Process {
         val pb = ProcessBuilder(path,
