@@ -4,53 +4,62 @@ import proofs.SelfRefinement
 
 class SelfRefinementTest {
     @Test
-    fun selfRefinementTest1(){
-        val proofSearcher = ProofSearcher()
-            .addProof(SelfRefinement())
+    fun selfRefinementTest1() {
+        val proofSearcher = ProofSearcher().addProof(SelfRefinement())
 
-        val factSheet = """
+        val factSheet =
+            """
             locally-consistent: AG.A
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.A
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @Test
-    fun selfRefinementTest2(){
-        val proofSearcher = ProofSearcher()
-            .addProof(SelfRefinement())
+    fun selfRefinementTest2() {
+        val proofSearcher = ProofSearcher().addProof(SelfRefinement())
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.A
             AG.G <= AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(!proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(!proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @Test
-    fun selfRefinementTest3(){
-        val proofSearcher = ProofSearcher()
-            .addProof(SelfRefinement())
-            .addProof(ConsistentRefinements())
+    fun selfRefinementTest3() {
+        val proofSearcher =
+            ProofSearcher().addProof(SelfRefinement()).addProof(ConsistentRefinements())
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.A
             AG.G <= AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 }

@@ -2,50 +2,52 @@ package facts
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 import parsing.RelationParserFacade
 import parsing.RelationVisitor
 import parsing.System
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 
 object RelationLoader {
     private val visitor = RelationVisitor()
     val relations: ArrayList<System>
 
-    val prefixMap = mapOf(
-        "AG" to "samples/json/AG",
-        "Uni" to "samples/json/EcdarUniversity",
-        "Conjunction" to "samples/json/Conjunction",
-        "Conjun" to "samples/xml/conjun.xml",
-        "BigRefinement" to "samples/json/BigRefinement",
-        "DelayAdd" to "samples/json/DelayAdd",
-        "Unspec" to "samples/json/Unspec",
-        "Loop" to "samples/xml/loop.xml",
-        "Delay" to "samples/xml/delayRefinement.xml",
-        "Extrapolation" to "samples/xml/extrapolation_test.xml",
-        "Misc" to "samples/xml/misc_test.xml",
-        "Cons" to "samples/xml/ConsTests.xml"
-    )
+    val prefixMap =
+        mapOf(
+            "AG" to "samples/json/AG",
+            "Uni" to "samples/json/EcdarUniversity",
+            "Conjunction" to "samples/json/Conjunction",
+            "Conjun" to "samples/xml/conjun.xml",
+            "BigRefinement" to "samples/json/BigRefinement",
+            "DelayAdd" to "samples/json/DelayAdd",
+            "Unspec" to "samples/json/Unspec",
+            "Loop" to "samples/xml/loop.xml",
+            "Delay" to "samples/xml/delayRefinement.xml",
+            "Extrapolation" to "samples/xml/extrapolation_test.xml",
+            "Misc" to "samples/xml/misc_test.xml",
+            "Cons" to "samples/xml/ConsTests.xml")
 
     val actionMap = HashMap<String, Map<String, Set<String>>>()
 
     init {
         parseActions()
 
-        val parse = RelationParserFacade.parse(
-            File("relations.txt").readText(Charsets.UTF_8)
-        )!!
+        val parse = RelationParserFacade.parse(File("relations.txt").readText(Charsets.UTF_8))!!
         parse.accept(visitor)
         relations = visitor.components
     }
 
     fun getInputs(prefix: String, name: String): HashSet<String> {
-        return actionMap[prefix]!![name]!!.filter { it.endsWith("?") && !it.startsWith("*") }.map { it.dropLast(1) }
+        return actionMap[prefix]!![name]!!
+            .filter { it.endsWith("?") && !it.startsWith("*") }
+            .map { it.dropLast(1) }
             .toHashSet()
     }
 
     fun getOutputs(prefix: String, name: String): HashSet<String> {
-        return actionMap[prefix]!![name]!!.filter { it.endsWith("!") && !it.startsWith("*") }.map { it.dropLast(1) }
+        return actionMap[prefix]!![name]!!
+            .filter { it.endsWith("!") && !it.startsWith("*") }
+            .map { it.dropLast(1) }
             .toHashSet()
     }
 
@@ -53,9 +55,8 @@ object RelationLoader {
         for ((prefix, path) in prefixMap.entries) {
             val file = File(path)
             if (file.isDirectory) {
-                //JSON
+                // JSON
                 val map = HashMap<String, Set<String>>()
-
 
                 val components = File(path, "Components")
                 val files = components.listFiles()!!
@@ -73,7 +74,7 @@ object RelationLoader {
                 }
                 actionMap[prefix] = map
             } else {
-                //XML
+                // XML
                 val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 val doc = builder.parse(file).documentElement
 
@@ -94,7 +95,9 @@ object RelationLoader {
                                 val transitionChildren = node.childNodes
                                 for (k in 0 until transitionChildren.length) {
                                     val label = transitionChildren.item(k)
-                                    if (label.nodeName == "label" && label.attributes.getNamedItem("kind").nodeValue == "synchronisation") {
+                                    if (label.nodeName == "label" &&
+                                        label.attributes.getNamedItem("kind").nodeValue ==
+                                            "synchronisation") {
                                         actions.add(label.textContent)
                                     }
                                 }

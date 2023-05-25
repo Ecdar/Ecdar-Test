@@ -11,18 +11,17 @@ fun TestGenerator.addNotRefinesTests(): TestGenerator {
 
 class NotRefinement : TestRule {
 
-    override fun getTests(system: System): List<Test> = sequence<Test> {
-        for (other in system.thisNotRefines) {
-            yield(
-                createNonRefinementTest(system, other)
-            )
-        }
-    }.toList()
+    override fun getTests(system: System): List<Test> =
+        sequence<Test> {
+                for (other in system.thisNotRefines) {
+                    yield(createNonRefinementTest(system, other))
+                }
+            }
+            .toList()
 
     private fun createNonRefinementTest(system: System, other: System) =
         NotSatisfiedTest(
             "NotRefines",
             system.getProjectFolder(),
-            "refinement: ${system.getName()} <= ${other.getName()}"
-        )
+            "refinement: ${system.getName()} <= ${other.getName()}")
 }

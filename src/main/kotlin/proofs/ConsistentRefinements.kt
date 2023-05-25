@@ -1,8 +1,8 @@
 package proofs
 
 import ProofSearcher
-import parsing.System
 import java.util.*
+import parsing.System
 
 class ConsistentRefinements : Proof() {
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {

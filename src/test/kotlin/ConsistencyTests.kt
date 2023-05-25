@@ -1,57 +1,59 @@
 import analytics.ComponentsAdded
 import facts.RelationLoader
+import kotlin.reflect.typeOf
+import org.junit.jupiter.api.Test
 import parsing.*
 import proofs.ConsistentCompositions
 import proofs.addAllProofs
 import proofs.addConsistencyProofs
-import tests.testgeneration.addRefinementTests
-import kotlin.reflect.typeOf
-import org.junit.jupiter.api.Test
 
 internal class ConsistencyTests {
     @Test
     fun consistencyComposition() {
         val proofSearcher = ProofSearcher().addConsistencyProofs()
 
-        val factSheet = """
+        val factSheet =
+            """
             locally-consistent: AG.A
             locally-consistent: AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             locally-consistent: AG.A || AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @ExperimentalStdlibApi
     @Test
     fun visit1() {
         val compsAddedAnalysis = ComponentsAdded(arrayListOf(typeOf<ConsistentCompositions>()))
-        val searcher = ProofSearcher()
-            .addAllProofs()
-            .addAnalytic(compsAddedAnalysis)
+        val searcher = ProofSearcher().addAllProofs().addAnalytic(compsAddedAnalysis)
 
         searcher.findNewRelations(RelationLoader.relations)
 
         compsAddedAnalysis.printFindings()
     }
 
-    fun consistencyCount(components: ArrayList<System>): Int{
+    fun consistencyCount(components: ArrayList<System>): Int {
         var count = 0
         for (comp in components) {
-            if (comp.isLocallyConsistent.orElse(false)){
+            if (comp.isLocallyConsistent.orElse(false)) {
                 count++
             }
         }
 
         return count
     }
-    fun nonConsistencyCount(components: ArrayList<System>): Int{
+
+    fun nonConsistencyCount(components: ArrayList<System>): Int {
         var count = 0
         for (comp in components) {
-            if (!comp.isLocallyConsistent.orElse(true)){
+            if (!comp.isLocallyConsistent.orElse(true)) {
                 count++
             }
         }

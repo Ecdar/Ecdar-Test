@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
         maven {
             name 'JFrog OSS snapshot repo'
-            url  'https://oss.jfrog.org/oss-snapshot-local/'
+            url 'https://oss.jfrog.org/oss-snapshot-local/'
         }
         jcenter()
     }
@@ -17,6 +17,7 @@ buildscript {
 
 plugins {
     id 'com.google.protobuf' version '0.9.2'
+    id "com.diffplug.spotless" version "6.19.0"
 }
 
 apply plugin: 'kotlin'
@@ -77,7 +78,7 @@ protobuf {
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ['-visitor', '-package',  'parser']
+    arguments += ['-visitor', '-package', 'parser']
     outputDirectory = new File("src/main/java/parser".toString())
 }
 compileKotlin.dependsOn generateGrammarSource
@@ -106,5 +107,15 @@ test {
     maxParallelForks = Runtime.getRuntime().availableProcessors()
     testLogging {
         events "passed", "skipped", "failed"
+    }
+}
+
+//ktfmtFormatMain.dependsOn ktfmtFormatGenerated
+
+//ktfmtFormatGenerated.dependsOn ktfmtFormatMain
+
+spotless {
+    kotlin {
+        ktfmt('0.44').dropboxStyle()
     }
 }

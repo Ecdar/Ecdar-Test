@@ -10,19 +10,18 @@ fun TestGenerator.addRefinementTests(): TestGenerator {
 }
 
 class RefinementTests : TestRule {
-    override fun getTests(system: System): List<Test> = sequence {
-        for (other in system.thisRefines) {
-            if (!system.isKnownLocallyConsistent() || !other.isKnownLocallyConsistent())
-                continue
+    override fun getTests(system: System): List<Test> =
+        sequence {
+                for (other in system.thisRefines) {
+                    if (!system.isKnownLocallyConsistent() || !other.isKnownLocallyConsistent())
+                        continue
 
-            yield(createTest(system, other))
-        }
-    }.toList()
+                    yield(createTest(system, other))
+                }
+            }
+            .toList()
 
-    private fun createTest(
-        system: System,
-        other: System
-    ): Test {
+    private fun createTest(system: System, other: System): Test {
         return if (system == other) {
             createSelfRefinementTest(system)
         } else {
@@ -34,14 +33,11 @@ class RefinementTests : TestRule {
         SatisfiedTest(
             "Refinement",
             system.getProjectFolder(),
-            "refinement: ${system.getName()} <= ${other.getName()}"
-        )
+            "refinement: ${system.getName()} <= ${other.getName()}")
 
     private fun createSelfRefinementTest(system: System) =
         SatisfiedTest(
             "SelfRefinement",
             system.getProjectFolder(),
-            "refinement: ${system.getName()} <= ${system.getName()}"
-        )
-
+            "refinement: ${system.getName()} <= ${system.getName()}")
 }

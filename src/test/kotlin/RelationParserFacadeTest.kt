@@ -1,7 +1,7 @@
 import facts.RelationLoader
 import org.junit.jupiter.api.Assertions.assertTrue
-import parsing.RelationParserFacade
 import org.junit.jupiter.api.Test
+import parsing.RelationParserFacade
 
 internal class RelationParserFacadeTest {
 
@@ -29,16 +29,18 @@ internal class RelationParserFacadeTest {
     fun visit1() {
 
         for (comp in RelationLoader.relations) {
-            val refines = comp.thisRefines.toArray().sortedWith(
-                compareBy(String.CASE_INSENSITIVE_ORDER) { it.toString() }
-            ).toString()
-            val oRefines = comp.refinesThis.toArray().sortedWith(
-                compareBy(String.CASE_INSENSITIVE_ORDER) { it.toString() }
-            ).toString()
+            val refines =
+                comp.thisRefines
+                    .toArray()
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.toString() })
+                    .toString()
+            val oRefines =
+                comp.refinesThis
+                    .toArray()
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.toString() })
+                    .toString()
 
             println("$comp refines $refines and $oRefines refine it")
         }
-
-
     }
 }

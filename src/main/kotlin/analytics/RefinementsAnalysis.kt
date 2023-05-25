@@ -10,7 +10,6 @@ class RefinementsAnalysis : ProofAnalytic {
     private var lastRefinements = 0
     var addedPerIteration = ArrayList<Int>()
 
-
     override fun recordStart(components: ArrayList<System>) {
         startingRefinements = refinementCount(components)
         lastRefinements = startingRefinements
@@ -29,7 +28,8 @@ class RefinementsAnalysis : ProofAnalytic {
 
     fun printFindings() {
         println("Refinement proof searching resulted in")
-        println("$addedRefinements new refinement relations going from $startingRefinements to $endingRefinements")
+        println(
+            "$addedRefinements new refinement relations going from $startingRefinements to $endingRefinements")
         println("Iteration breakdown")
         var iterationCount = 1
         for (added in addedPerIteration) {
@@ -37,7 +37,6 @@ class RefinementsAnalysis : ProofAnalytic {
             iterationCount++
         }
     }
-
 
     private fun refinementCount(components: ArrayList<System>): Int {
         var count = 0

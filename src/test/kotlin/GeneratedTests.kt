@@ -1,4 +1,5 @@
 import facts.RelationLoader
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
@@ -11,7 +12,6 @@ import parsing.parseEngineConfigurations
 import proofs.addAllProofs
 import tests.Test
 import tests.testgeneration.addAllTests
-import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GeneratedTests {
@@ -24,7 +24,6 @@ class GeneratedTests {
         engines.forEach { it.terminate() }
     }
 
-
     @org.junit.jupiter.api.Test
     fun test() {
         assertTrue(true)
@@ -33,7 +32,6 @@ class GeneratedTests {
     @TestFactory
     fun main(): Iterable<DynamicTest?> {
         val tests = generateTests()
-
 
         return createExecutableJUnitTests(engines, tests)
     }
@@ -62,11 +60,13 @@ class GeneratedTests {
     }
 
     private fun createJUnitTest(executor: Executor, test: Test, deadline: Long?): DynamicTest {
-        val testName = "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
+        val testName =
+            "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
         val testBody = Executable {
             println("Testing $testName")
-            val t = executor.runTest(test, deadline)
-            assertEquals(t.expected, t.result, "Test failed: $testName") }
+            val t = executor.runTest(test, deadline ?: 30)
+            assertEquals(t.expected, t.result, "Test failed: $testName")
+        }
         return dynamicTest(testName, testBody)
     }
 

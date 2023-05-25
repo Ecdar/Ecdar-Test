@@ -1,9 +1,9 @@
 package proofs
 
 import ProofSearcher
+import java.util.*
 import parsing.Composition
 import parsing.System
-import java.util.*
 
 class ConsistentCompositions : Proof() {
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
@@ -30,7 +30,11 @@ class ConsistentCompositions : Proof() {
         }
     }
 
-    private fun setConsistency(component: System, ctx: ProofSearcher.IterationContext, consistency: Boolean) {
+    private fun setConsistency(
+        component: System,
+        ctx: ProofSearcher.IterationContext,
+        consistency: Boolean
+    ) {
         component.isLocallyConsistent = Optional.of(consistency)
         ctx.setDirty(component, this)
     }

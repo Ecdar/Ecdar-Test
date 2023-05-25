@@ -20,41 +20,47 @@ enum class ResultType {
     NON_EXCEPTION;
 
     companion object {
-        fun from(result: Boolean) : ResultType {
+        fun from(result: Boolean): ResultType {
             return when (result) {
                 true -> SATISFIED
                 false -> UNSATISFIED
             }
         }
-        fun from(result: ResultCase) : ResultType {
+
+        fun from(result: ResultCase): ResultType {
             return when (result) {
-                SUCCESS, COMPONENT, REACHABILITY, IMPLEMENTATION -> SATISFIED
-                CONSISTENCY, DETERMINISM, REFINEMENT, REACHABILITY_PATH,
-                PARSING_ERROR, MODEL, ERROR, RESULT_NOT_SET -> UNSATISFIED
+                SUCCESS,
+                COMPONENT,
+                REACHABILITY,
+                IMPLEMENTATION -> SATISFIED
+                CONSISTENCY,
+                DETERMINISM,
+                REFINEMENT,
+                REACHABILITY_PATH,
+                PARSING_ERROR,
+                MODEL,
+                ERROR,
+                RESULT_NOT_SET -> UNSATISFIED
             }
         }
     }
 
     fun colored(): String {
-        return when(this) {
+        return when (this) {
             SATISFIED -> "${ANSI_GREEN}SATISFIED$ANSI_RESET"
             UNSATISFIED -> "${ANSI_CYAN}UNSATISFIED$ANSI_RESET"
             EXCEPTION -> "${ANSI_RED}EXCEPTION$ANSI_RESET"
             NON_EXCEPTION -> "${ANSI_PURPLE}NON_EXCEPTION$ANSI_RESET"
-
         }
     }
 }
 
 class TestResult(
-    @Json(index=7) val test: SingleTest,
-    @Json(index=4) val result: ResultType,
-    @Json(index=5) val expected: ResultType,
-    @Json(index=8) val inner: List<TestResult>,
+    @Json(index = 7) val test: SingleTest,
+    @Json(index = 4) val result: ResultType,
+    @Json(index = 5) val expected: ResultType,
+    @Json(index = 8) val inner: List<TestResult>,
 ) {
-    @Json(index=3) var time: Double? = null
-    @Json(index=6) var exception: String? = null
-
-
+    @Json(index = 3) var time: Double? = null
+    @Json(index = 6) var exception: String? = null
 }
-
