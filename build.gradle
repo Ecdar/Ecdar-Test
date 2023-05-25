@@ -110,10 +110,6 @@ test {
     }
 }
 
-//ktfmtFormatMain.dependsOn ktfmtFormatGenerated
-
-//ktfmtFormatGenerated.dependsOn ktfmtFormatMain
-
 spotless {
     kotlin {
         ktfmt('0.44').dropboxStyle()
