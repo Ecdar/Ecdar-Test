@@ -56,31 +56,21 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
         terminate()
     }
 
+    private inline fun<T> List<T>.sumOf(selector: (T) -> Double?): Double? =
+        this.map { selector.invoke(it) ?: return null }.sum()
 
     fun runTest(test: Test): TestResult {
         try {
             if (test is MultiTest) {
                 val resses = test.tests.map { runTest(it) }
                 val res = test.getResult(resses)
-                var time: Double? = 0.0
-                resses.forEach {
-                    if (it.time == null) {
-                        time = null
-                        return@forEach
-                    } else {
-                        time = time?.plus(it.time!!)
-                    }
-                }
-                res.time = time
+                res.time = resses.sumOf { it.time }
                 return res
             } else if (test is SingleTest) {
                 lock()
                 val queryId = queryId.getAndAdd(1)
-
                 val success: ResultCase?
-
                 val start = System.currentTimeMillis()
-
                 try {
                     val query = QueryProtos.QueryRequest.newBuilder()
                             .setQueryId(queryId)
@@ -103,7 +93,6 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
                         sendQuery(query)
                     }
 
-                    //val result = stub.withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
                     success = when (val r = result.resultCase) {
                         ResultCase.PARSING_ERROR ->
                             throw Exception("Query: ${test.query} in ${test.projectPath} lead to parsing-error: ${result.error}")
@@ -152,6 +141,7 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
             } catch (e: IOException) {
                 false
             }
+
         var p = port
         while(!isLocalPortFree(p))
             p++
