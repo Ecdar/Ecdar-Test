@@ -21,7 +21,6 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
     private var queryId = AtomicInteger(0)
     private var proc: Process? = null
     private val stub = EcdarBackendGrpc.newBlockingStub(ManagedChannelBuilder.forTarget(address).usePlaintext().build())
-    private var lock: AtomicBoolean = AtomicBoolean(false)
 
     private val deadline: Long = engine.deadline
     private val settings: QueryProtos.QueryRequest.Settings = engine.settings
@@ -29,7 +28,6 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
     private val path = engine.path!!
     private var expr = engine.parameterExpression!!
     private val ip = engine.ip
-
 
     init {
         initialize()
@@ -67,11 +65,10 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
                 res.time = resses.sumOf { it.time }
                 return res
             } else if (test is SingleTest) {
-                lock()
+                //lock()
                 val queryId = queryId.getAndAdd(1)
                 val success: ResultCase?
                 val start = System.currentTimeMillis()
-                try {
                     val query = QueryProtos.QueryRequest.newBuilder()
                             .setQueryId(queryId)
                             .setQuery(test.query)
@@ -102,10 +99,7 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
                             throw Exception("Query: ${test.query} in ${test.projectPath} could not produce result. Error: ${result.error}")
                         else -> r
                     }
-                }
-                finally {
-                    unlock()
-                }
+
 
                 val res = test.getResult(success!!)
                 res.time = (System.currentTimeMillis() - start).toDouble()
@@ -123,15 +117,6 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
 
     private fun sendQuery(q: QueryProtos.QueryRequest): QueryProtos.QueryResponse =
         stub.withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(q)
-
-    private fun lock() {
-        while (!lock.compareAndSet(false, true))
-            Thread.sleep(100)
-    }
-
-    private fun unlock() {
-        lock.set(false)
-    }
 
     private fun initialize() {
         fun isLocalPortFree(port: Int) =
