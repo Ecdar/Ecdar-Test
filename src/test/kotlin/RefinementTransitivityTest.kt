@@ -9,79 +9,93 @@ internal class RefinementTransitivityTest {
     fun visit1() {
 
         val refinementAnalytics = RefinementsAnalysis()
-        val searcher = ProofSearcher()
-            .addRefinementProofs()
-            .addAnalytic(refinementAnalytics)
+        val searcher = ProofSearcher().addRefinementProofs().addAnalytic(refinementAnalytics)
         searcher.findNewRelations(RelationLoader.relations)
 
         refinementAnalytics.printFindings()
     }
 
     @Test
-    fun refinementTransitivityTest1(){
+    fun refinementTransitivityTest1() {
         val proofSearcher = ProofSearcher().addRefinementProofs()
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
             AG.G <= AG.AA
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.AA
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @Test
-    fun refinementTransitivityTest2(){
+    fun refinementTransitivityTest2() {
         val proofSearcher = ProofSearcher().addRefinementProofs()
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
             AG.G <= AG.AA
             AG.AA <= AG.Imp
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.Imp
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @Test
-    fun refinementTransitivityTest3(){
+    fun refinementTransitivityTest3() {
         val proofSearcher = ProofSearcher().addRefinementProofs()
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
             AG.AA <= AG.AA
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.AA
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(!proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(!proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 
     @Test
-    fun refinementTransitivityCircularTest(){
+    fun refinementTransitivityCircularTest() {
         val proofSearcher = ProofSearcher().addRefinementProofs()
 
-        val factSheet = """
+        val factSheet =
+            """
             AG.A <= AG.G
             AG.G <= AG.AA
             AG.AA <= AG.A
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        val expectedSheet = """
+        val expectedSheet =
+            """
             AG.A <= AG.AA
             AG.G <= AG.A
             AG.AA <= AG.G
-        """.trimIndent()
+        """
+                .trimIndent()
 
-        assert(proofSearchContains(factSheet, expectedSheet,proofSearcher))
+        assert(proofSearchContains(factSheet, expectedSheet, proofSearcher))
     }
 }

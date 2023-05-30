@@ -5,7 +5,8 @@ import parsing.System
 
 class SelfRefinement : Proof() {
     override fun search(component: System, ctx: ProofSearcher.IterationContext) {
-        if (hasAnyRefinementRelations(component)) { //E.g. the component is assumed to be consistent
+        if (hasAnyRefinementRelations(
+            component)) { // E.g. the component is assumed to be consistent
             makeSelfRefining(component, ctx)
         }
     }

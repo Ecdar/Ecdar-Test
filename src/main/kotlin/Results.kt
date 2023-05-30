@@ -9,9 +9,9 @@ const val MAX_RESULTS_PRINTED: Int = 20
 
 fun main() {
     printLatestResults()
-    //printLatestResults("results/J-ecdar/UCDD")
-    //printLatestResults("results/Reveaal")
-    //printResults("results/Reveaal/Main/0.json")
+    // printLatestResults("results/J-ecdar/UCDD")
+    // printLatestResults("results/Reveaal")
+    // printResults("results/Reveaal/Main/0.json")
 }
 
 fun printLatestResults(folder: String = "results") {
@@ -21,10 +21,11 @@ fun printLatestResults(folder: String = "results") {
         return
     }
 
-    val sorted = Files.walk(dir.toPath())
-        .filter(Files::isRegularFile)
-        .filter {it.extension == "json"}
-        .sorted { o1, o2 -> o2.getLastModifiedTime().compareTo(o1.getLastModifiedTime())}
+    val sorted =
+        Files.walk(dir.toPath())
+            .filter(Files::isRegularFile)
+            .filter { it.extension == "json" }
+            .sorted { o1, o2 -> o2.getLastModifiedTime().compareTo(o1.getLastModifiedTime()) }
     val file = sorted.findFirst()
     if (file.isEmpty) {
         println("Could not find any .json results in \"$folder\"")
@@ -32,7 +33,6 @@ fun printLatestResults(folder: String = "results") {
     }
     printResults(file.get().toString())
 }
-
 
 fun printResults(file: String) {
     val sdf = java.text.SimpleDateFormat("HH:mm:ss' 'yyyy-MM-dd")
@@ -49,10 +49,16 @@ fun printResults(file: String) {
     val failedResults = ResultType.values().associateWith { 0 }.toMutableMap()
 
     results.forEach {
-        when(it.result){
-            it.expected -> {succeded++; succedingResults[it.expected] = succedingResults[it.expected]!! + 1 }
+        when (it.result) {
+            it.expected -> {
+                succeded++
+                succedingResults[it.expected] = succedingResults[it.expected]!! + 1
+            }
             ResultType.EXCEPTION -> errored++
-            else -> {failed++; failedResults[it.expected] = failedResults[it.expected]!! + 1 }
+            else -> {
+                failed++
+                failedResults[it.expected] = failedResults[it.expected]!! + 1
+            }
         }
     }
 
@@ -62,11 +68,8 @@ fun printResults(file: String) {
         val succ = succedingResults[it]!!
         val all = succedingResults[it]!! + failedResults[it]!!
         val text = "${succ}/${all}"
-        if (all != 0)
-            println("$text of ${it.colored()} tests succeeded")
+        if (all != 0) println("$text of ${it.colored()} tests succeeded")
     }
-
-
 
     println("$failed tests failed")
     println("$errored failed due to exceptions")
@@ -83,16 +86,19 @@ fun printResults(file: String) {
 
     results.forEach {
         if (it.result != it.expected) {
-            if (prints<MAX_RESULTS_PRINTED) { // Print at most maxPrints times
+            if (prints < MAX_RESULTS_PRINTED) { // Print at most maxPrints times
                 println()
                 printTestResult(it)
             }
 
             for (key in operators) {
-                if(it.test.query.contains(key)) {
+                if (it.test.query.contains(key)) {
                     // If it was an exception we check which sub-query caused it.
                     if (it.result == ResultType.EXCEPTION) {
-                        if (it.inner.isEmpty() || it.inner.any { it.result == ResultType.EXCEPTION && it.test.query.contains(key) }) {
+                        if (it.inner.isEmpty() ||
+                            it.inner.any {
+                                it.result == ResultType.EXCEPTION && it.test.query.contains(key)
+                            }) {
                             operatorExceptionCounts[key] = operatorExceptionCounts[key]!! + 1
                         }
                     } else {
@@ -101,10 +107,10 @@ fun printResults(file: String) {
                 }
             }
 
-            prints ++
+            prints++
         } else {
             for (key in operators) {
-                if(it.test.query.contains(key)) {
+                if (it.test.query.contains(key)) {
                     operatorSucceededCounts[key] = operatorSucceededCounts[key]!! + 1
                 }
             }
@@ -118,9 +124,10 @@ fun printResults(file: String) {
 
     println("$succeded/$numTests tests succeeded (${(succeded*100.0/numTests).roundToInt()}%)\n")
     if (succeded != numTests) {
-        fun Map<String, Int>.toPercentages(max:Int): Collection<String>  {
-            if(max <= 0) return listOf()
-            return this.filterValues { it != 0 }.map { (key, value) -> "\"$key\" used in ${(value*100.0/max).roundToInt()}%" }
+        fun Map<String, Int>.toPercentages(max: Int): Collection<String> {
+            if (max <= 0) return listOf()
+            return this.filterValues { it != 0 }
+                .map { (key, value) -> "\"$key\" used in ${(value*100.0/max).roundToInt()}%" }
         }
 
         val usedFailedOperators = operatorFailedCounts.toPercentages(failed)
@@ -130,30 +137,34 @@ fun printResults(file: String) {
 
         val usedExceptionOperators = operatorExceptionCounts.toPercentages(errored)
         if (usedExceptionOperators.isNotEmpty()) {
-            println("Operator ${usedExceptionOperators.joinToString(", ")} of $errored queries causing exceptions")
+            println(
+                "Operator ${usedExceptionOperators.joinToString(", ")} of $errored queries causing exceptions")
         }
 
         val usedSucceededOperators = operatorSucceededCounts.toPercentages(succeded)
         if (usedSucceededOperators.isNotEmpty()) {
-            println("Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
+            println(
+                "Operator ${usedSucceededOperators.joinToString(", ")} of $succeded succeeded queries")
         }
     }
     if (times.size > 0) {
-    println("\nMedian runtime of successful queries: ${median(times)} ms")
+        println("\nMedian runtime of successful queries: ${median(times)} ms")
     }
 }
 
 fun printTestResult(result: TestResult) {
     val testName = result.test.query
-    println("Expected ${result.expected.colored()}, but was ${result.result.colored()} in $testName")
+    println(
+        "Expected ${result.expected.colored()}, but was ${result.result.colored()} in $testName")
     if (result.result == ResultType.EXCEPTION) {
         println("${ResultType.EXCEPTION.colored()}: ${result.exception}")
     }
 
-    println("Rerun with arguments: \"${getInnerQueries(result).joinToString("; ")}\" -i ${result.test.projectPath} \n")
+    println(
+        "Rerun with arguments: \"${getInnerQueries(result).joinToString("; ")}\" -i ${result.test.projectPath} \n")
 }
 
-fun getInnerQueries(result: TestResult) : List<String> {
+fun getInnerQueries(result: TestResult): List<String> {
     return if (result.inner.isEmpty()) {
         listOf(result.test.query)
     } else {
@@ -163,6 +174,6 @@ fun getInnerQueries(result: TestResult) : List<String> {
 
 fun median(l: List<Double>) = l.sorted().let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2.0 }
 
-fun parseResults(file : String): List<TestResult> {
+fun parseResults(file: String): List<TestResult> {
     return (Klaxon().parseArray<TestResult>(File(file)))!!
 }

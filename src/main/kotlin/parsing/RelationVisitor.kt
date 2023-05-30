@@ -1,8 +1,8 @@
 package parsing
 
+import java.util.*
 import parser.RelationParser
 import parser.RelationParserBaseVisitor
-import java.util.*
 
 class RelationVisitor : RelationParserBaseVisitor<System?>() {
 
@@ -23,7 +23,9 @@ class RelationVisitor : RelationParserBaseVisitor<System?>() {
     }
 
     override fun visitSystem(ctx: RelationParser.SystemContext?): System? {
-        ctx?.conj_system()?.let { return it.accept(this) }
+        ctx?.conj_system()?.let {
+            return it.accept(this)
+        }
 
         val left = ctx?.system(0)?.accept(this)
         val right = ctx?.system(1)?.accept(this)
@@ -32,7 +34,9 @@ class RelationVisitor : RelationParserBaseVisitor<System?>() {
     }
 
     override fun visitConj_system(ctx: RelationParser.Conj_systemContext?): System? {
-        ctx?.term()?.let { return it.accept(this) }
+        ctx?.term()?.let {
+            return it.accept(this)
+        }
 
         val left = ctx?.conj_system(0)?.accept(this)
         val right = ctx?.conj_system(1)?.accept(this)
@@ -41,7 +45,9 @@ class RelationVisitor : RelationParserBaseVisitor<System?>() {
     }
 
     override fun visitTerm(ctx: RelationParser.TermContext?): System? {
-        ctx?.system()?.let { return it.accept(this) }
+        ctx?.system()?.let {
+            return it.accept(this)
+        }
         val comp = Component(ctx?.prefix?.text!!, ctx?.comp?.text!!)
 
         return addOrGet(comp)
@@ -54,7 +60,9 @@ class RelationVisitor : RelationParserBaseVisitor<System?>() {
         return null
     }
 
-    override fun visitNotlocallyconsistent(ctx: RelationParser.NotlocallyconsistentContext?): System? {
+    override fun visitNotlocallyconsistent(
+        ctx: RelationParser.NotlocallyconsistentContext?
+    ): System? {
         val comp = ctx?.comp?.accept(this)!!
 
         comp.isLocallyConsistent = Optional.of(false)
@@ -76,5 +84,4 @@ class RelationVisitor : RelationParserBaseVisitor<System?>() {
         components.add(sys)
         return sys
     }
-
 }

@@ -5,7 +5,7 @@ import ProofSearcher
 fun ProofSearcher.addAllProofs(): ProofSearcher {
     return this.addRefinementProofs()
         .addConsistencyProofs()
-        .addProof(ContextSwitch()) //Incredibly slow generation
+        .addProof(ContextSwitch()) // Incredibly slow generation
 }
 
 fun ProofSearcher.addRefinementProofs(): ProofSearcher {
@@ -16,11 +16,10 @@ fun ProofSearcher.addRefinementProofs(): ProofSearcher {
         .addProof(QuotientRule())
 }
 
-fun ProofSearcher.addQuotientProofs() : ProofSearcher {
+fun ProofSearcher.addQuotientProofs(): ProofSearcher {
     return this.addProof(QuotientRule())
 }
 
 fun ProofSearcher.addConsistencyProofs(): ProofSearcher {
-    return this.addProof(ConsistentRefinements())
-        .addProof(ConsistentCompositions())
+    return this.addProof(ConsistentRefinements()).addProof(ConsistentCompositions())
 }

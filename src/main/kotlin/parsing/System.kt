@@ -29,15 +29,16 @@ interface System {
 
     fun sharesAlphabet(other: System): Boolean {
         return this.getProjectFolder() == other.getProjectFolder() &&
-                inputs == other.inputs &&
-                outputs == other.outputs
+            inputs == other.inputs &&
+            outputs == other.outputs
     }
 
     fun sameAs(other: System): Boolean
 
     fun refinementValid(t: System): Boolean {
         val s = this
-        val disjoint = s.inputs.intersect(t.outputs).isEmpty() && t.inputs.intersect(s.outputs).isEmpty()
+        val disjoint =
+            s.inputs.intersect(t.outputs).isEmpty() && t.inputs.intersect(s.outputs).isEmpty()
         val subset = t.inputs.containsAll(s.inputs) && s.outputs.containsAll(t.outputs)
         return disjoint && subset
     }
@@ -45,8 +46,7 @@ interface System {
     fun refines(spec: System): Boolean {
         if (!refinementValid(spec)) return false // due to preconditions these can never hold
 
-        return thisRefines.add(spec) or
-                spec.refinesThis.add(this)
+        return thisRefines.add(spec) or spec.refinesThis.add(this)
     }
 
     fun notRefines(spec: System): Boolean {
@@ -55,8 +55,8 @@ interface System {
         return thisNotRefines.add(spec) or spec.notRefinesThis.add(this)
     }
 
-
     override fun toString(): String
+
     fun getProjectFolder(): String
 
     fun getName(): String
@@ -80,9 +80,9 @@ class Component(val prefix: String, val comp: String) : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 0
+
     override var components = 1
     override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
-
 
     override fun sameAs(other: System): Boolean {
         if (other is Component) {
@@ -106,9 +106,7 @@ class Component(val prefix: String, val comp: String) : System {
     override fun isValid(): Boolean {
         return true
     }
-
 }
-
 
 class Quotient(var T: System, var S: System) : System {
 
@@ -127,10 +125,11 @@ class Quotient(var T: System, var S: System) : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+
     override val components: Int
         get() = T.components + S.components
-    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
+    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
     override fun sameAs(other: System): Boolean {
         if (other is Quotient) {
@@ -170,7 +169,7 @@ class Quotient(var T: System, var S: System) : System {
     }
 }
 
-    class Conjunction : System {
+class Conjunction : System {
     constructor(left: System, right: System) {
         assert(left.getProjectFolder() == right.getProjectFolder())
 
@@ -192,7 +191,6 @@ class Quotient(var T: System, var S: System) : System {
     constructor(children: HashSet<System>) {
         val folder = children.elementAt(0).getProjectFolder()
         assert(children.all { c -> c.getProjectFolder() == folder })
-
 
         assert(children.size > 1)
         for (child in children) {
@@ -221,7 +219,6 @@ class Quotient(var T: System, var S: System) : System {
         }
     }
 
-
     override var inputs = HashSet<String>()
     override var outputs = HashSet<String>()
     override var children = HashSet<System>()
@@ -232,10 +229,11 @@ class Quotient(var T: System, var S: System) : System {
     override var parents = HashSet<System>()
     override val depth: Int
         get() = 1 + (this.children.map { it.depth }.maxOrNull() ?: 0)
+
     override val components: Int
         get() = children.sumOf { it.components }
-    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
+    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
     override fun sameAs(other: System): Boolean {
         if (other is Conjunction) {
@@ -264,7 +262,11 @@ class Quotient(var T: System, var S: System) : System {
     }
 
     override fun isValid(): Boolean {
-        return children.none { child1 -> child1.inputs.any { input -> children.any {child2 -> child1 != child2 && input in child2.outputs} } }
+        return children.none { child1 ->
+            child1.inputs.any { input ->
+                children.any { child2 -> child1 != child2 && input in child2.outputs }
+            }
+        }
     }
 
     override fun toString(): String {
@@ -274,8 +276,6 @@ class Quotient(var T: System, var S: System) : System {
             ).joinToString(" && ")
         })"
     }
-
-
 }
 
 class Composition : System {
@@ -334,10 +334,11 @@ class Composition : System {
     override var parents = HashSet<System>()
     override val components: Int
         get() = children.sumOf { it.components }
+
     override val depth: Int
         get() = 1 + (this.children.maxOfOrNull { it.depth } ?: 0)
-    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
+    override var isLocallyConsistent: Optional<Boolean> = Optional.empty()
 
     override fun sameAs(other: System): Boolean {
         if (other is Composition) {
@@ -366,7 +367,11 @@ class Composition : System {
     }
 
     override fun isValid(): Boolean {
-        return children.none { child1 -> child1.outputs.any { output -> children.any {child2 -> child1 != child2 && output in child2.outputs} } }
+        return children.none { child1 ->
+            child1.outputs.any { output ->
+                children.any { child2 -> child1 != child2 && output in child2.outputs }
+            }
+        }
     }
 
     override fun toString(): String {
@@ -376,5 +381,4 @@ class Composition : System {
             ).joinToString(" || ")
         })"
     }
-
 }

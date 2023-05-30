@@ -11,11 +11,13 @@ fun TestGenerator.addConsistencyTests(): TestGenerator {
 }
 
 class ConsistencyTests : TestRule {
-    override fun getTests(system: System): List<Test> = sequence {
-        if (system.isLocallyConsistent.isPresent) {
-            yield(createTest(system))
-        }
-    }.toList()
+    override fun getTests(system: System): List<Test> =
+        sequence {
+                if (system.isLocallyConsistent.isPresent) {
+                    yield(createTest(system))
+                }
+            }
+            .toList()
 
     private fun createTest(system: System): Test {
         return if (system.isKnownLocallyConsistent()) {
@@ -26,16 +28,9 @@ class ConsistencyTests : TestRule {
     }
 
     private fun createConsistencyTest(system: System) =
-        SatisfiedTest(
-            "Consistency",
-            system.getProjectFolder(),
-            "consistency: ${system.getName()}"
-        )
+        SatisfiedTest("Consistency", system.getProjectFolder(), "consistency: ${system.getName()}")
 
     private fun createNonConsistencyTest(system: System) =
         NotSatisfiedTest(
-            "NonConsistency",
-            system.getProjectFolder(),
-            "consistency: ${system.getName()}"
-        )
+            "NonConsistency", system.getProjectFolder(), "consistency: ${system.getName()}")
 }

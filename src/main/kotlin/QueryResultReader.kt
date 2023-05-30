@@ -6,8 +6,7 @@ class QueryResultReader(fullText: String) {
     }
 
     fun nextResult(): QueryResult {
-        if (!hasNext())
-            throw Exception("No more results")
+        if (!hasNext()) throw Exception("No more results")
 
         return readNextResult()
     }
@@ -24,8 +23,7 @@ class QueryResultReader(fullText: String) {
 
     private fun skipToResults() {
         while (lines.hasNext()) {
-            if (lines.next() == "Query results:")
-                return
+            if (lines.next() == "Query results:") return
         }
 
         throw Exception("No query results found, model checker likely failed")

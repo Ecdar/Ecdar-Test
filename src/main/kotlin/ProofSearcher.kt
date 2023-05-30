@@ -38,24 +38,27 @@ class ProofSearcher {
         theorems.forEach { it.reset() }
 
         while (dirtyComponents.isNotEmpty()) {
-            println("Dirty components/components: ${dirtyComponents.count()}/${allComponents.count()} it: $iteration")
+            println(
+                "Dirty components/components: ${dirtyComponents.count()}/${allComponents.count()} it: $iteration")
 
             val iterationContext = IterationContext(allComponents, dirtyComponents, iteration)
             dirtyComponents = searchIteration(iterationContext)
 
-            analytics.forEach { analytic -> analytic.recordIteration(dirtyComponents, allComponents) }
+            analytics.forEach { analytic ->
+                analytic.recordIteration(dirtyComponents, allComponents)
+            }
             iteration++
         }
 
         println("${allComponents.size} components identified")
-        theorems.forEach { println("Proof ${it.javaClass.simpleName} added ${it.contribution} relations") }
+        theorems.forEach {
+            println("Proof ${it.javaClass.simpleName} added ${it.contribution} relations")
+        }
 
         return allComponents
     }
 
-    private fun searchIteration(
-        iterationContext: IterationContext
-    ): HashSet<System> {
+    private fun searchIteration(iterationContext: IterationContext): HashSet<System> {
 
         for (theorem in theorems) {
             for (comp in iterationContext.dirtyComponents) {
@@ -63,10 +66,7 @@ class ProofSearcher {
             }
             analytics.forEach { analytic ->
                 analytic.recordProofIteration(
-                    iterationContext.dirtyComponents,
-                    iterationContext.components,
-                    theorem
-                )
+                    iterationContext.dirtyComponents, iterationContext.components, theorem)
             }
         }
 
@@ -107,5 +107,4 @@ class ProofSearcher {
             return component
         }
     }
-
 }

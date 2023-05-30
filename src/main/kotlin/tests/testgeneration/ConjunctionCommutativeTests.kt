@@ -1,11 +1,11 @@
 package tests.testgeneration
 
 import TestGenerator
+import java.util.Collections.swap
 import parsing.Conjunction
 import parsing.System
 import tests.SatisfiedTest
 import tests.Test
-import java.util.Collections.swap
 
 fun TestGenerator.addConjunctionCommutativeTests(): TestGenerator {
     return addGenerator(ConjunctionCommutativeTests())
@@ -35,23 +35,27 @@ fun <V> List<V>.permutations(): List<List<V>> {
 }
 
 class ConjunctionCommutativeTests : TestRule {
-    override fun getTests(system: System): List<Test> = sequence {
-        if (!system.isKnownLocallyConsistent() || system !is Conjunction)
-            return@sequence
-        for (permutation in system.children.toList().permutations()){
-            yield(createSelfRefinementTest(system, permutation, false))
-            yield(createSelfRefinementTest(system, permutation, true))
-        }
-    }.toList()
+    override fun getTests(system: System): List<Test> =
+        sequence {
+                if (!system.isKnownLocallyConsistent() || system !is Conjunction) return@sequence
+                for (permutation in system.children.toList().permutations()) {
+                    yield(createSelfRefinementTest(system, permutation, false))
+                    yield(createSelfRefinementTest(system, permutation, true))
+                }
+            }
+            .toList()
 
-    private fun createSelfRefinementTest(original: System, permutation: List<System>, flip: Boolean) : SatisfiedTest {
+    private fun createSelfRefinementTest(
+        original: System,
+        permutation: List<System>,
+        flip: Boolean
+    ): SatisfiedTest {
         val first = "(${permutation.joinToString(" && ") { child -> child.getName()}})"
         val second = original.getName()
 
         return SatisfiedTest(
             "ConjCommutativeRefinement",
             original.getProjectFolder(),
-            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}"
-        )
+            "refinement: ${if (flip) first else second} <= ${if (flip) second else first}")
     }
 }

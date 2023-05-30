@@ -1,2 +1,1 @@
-class QueryResult(val query: String, val result: String) {
-}
+class QueryResult(val query: String, val result: String) {}
