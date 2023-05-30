@@ -18,7 +18,10 @@ Requires a configuration file `configuration.json` with information for each eng
         "testCount" : 4000,        
         "testSorting": "Random",
         "queryComplexity": [0, 1000],
-        "testsSavePath": "/path/to/file"
+        "testsSavePath": "/path/to/file",
+        "gRPCSettings": {
+          "disable-clock-reduction": true
+        }
     },
     {
         "name": "J-Ecdar",
@@ -57,7 +60,7 @@ If only one element is in the array the upper bound will be set to that.
 If more than two elements are defined then only the first two will be used where the first value is the lower bound and second value is the upper bound.
 If the array is empty, no bound is set.
 `testsSavePath` determines if and where in the filesystem to save the text-file with the queries being generated. If not set, the queries will not be saved on disk.
-
+`gRPCSettings` is the settings that are sent to the engine through gRPC. The settings can be found in the [protobuf](https://github.com/Ecdar/Ecdar-ProtoBuf).
 ## Run Tests for Engine
 Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
 ```

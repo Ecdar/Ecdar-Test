@@ -15,11 +15,11 @@ fun main() {
     //val component = ComponentProtos.Component.newBuilder().setJson(File("samples/json/AG/Components/A.json").readText()).build()
     val component = ComponentProtos.Component.newBuilder().setXml(File("samples/xml/conjun.xml").readText()).build()
 
-    val components = QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
-    stub.updateComponents(components)
+    val components = ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).build()
+    //stub.updateComponents(components)
 
-    val query = QueryProtos.Query.newBuilder().setId(0).setQuery("refinement: P0<=P0").build()
+    val query = QueryProtos.QueryRequest.newBuilder().setQueryId(0).setQuery("refinement: P0<=P0").setComponentsInfo(components).build()
 
     val response = stub.sendQuery(query)
-    println("Refinement is ${response.refinement.success}")
+    println("Refinement is ${response.hasSuccess()}") //TODO: Handle error
 }

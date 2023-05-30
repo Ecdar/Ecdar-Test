@@ -92,7 +92,7 @@ fun printResults(file: String) {
                 if(it.test.query.contains(key)) {
                     // If it was an exception we check which sub-query caused it.
                     if (it.result == ResultType.EXCEPTION) {
-                        if (it._inner.isEmpty() || it._inner.any { it.result == ResultType.EXCEPTION && it.test.query.contains(key) }) {
+                        if (it.inner.isEmpty() || it.inner.any { it.result == ResultType.EXCEPTION && it.test.query.contains(key) }) {
                             operatorExceptionCounts[key] = operatorExceptionCounts[key]!! + 1
                         }
                     } else {
@@ -154,10 +154,10 @@ fun printTestResult(result: TestResult) {
 }
 
 fun getInnerQueries(result: TestResult) : List<String> {
-    return if (result._inner.isEmpty()) {
+    return if (result.inner.isEmpty()) {
         listOf(result.test.query)
     } else {
-        result._inner.flatMap { getInnerQueries(it) }
+        result.inner.flatMap { getInnerQueries(it) }
     }
 }
 
