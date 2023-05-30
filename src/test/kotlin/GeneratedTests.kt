@@ -1,6 +1,5 @@
 import facts.RelationLoader
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -17,12 +16,6 @@ import tests.testgeneration.addAllTests
 class GeneratedTests {
 
     val engines = parseEngineConfigurations()
-
-    @AfterAll
-    fun cleanup() {
-        println("Cleaning up")
-        engines.forEach { it.terminate() }
-    }
 
     @org.junit.jupiter.api.Test
     fun test() {
@@ -49,29 +42,25 @@ class GeneratedTests {
         val dynamicTests = ArrayList<DynamicTest>()
 
         for (engine in engines) {
-            val executor = Executor(engine)
+            val executor = Executor(engine, engine.addresses[0], engine.port)
             for (test in tests) {
-                val jUnitTest = createJUnitTest(executor, test, engine.deadline)
+                val jUnitTest = createJUnitTest(executor, test)
                 dynamicTests.add(jUnitTest)
             }
+            executor.terminate()
         }
 
         return dynamicTests
     }
 
-    private fun createJUnitTest(executor: Executor, test: Test, deadline: Long?): DynamicTest {
+    private fun createJUnitTest(executor: Executor, test: Test): DynamicTest {
         val testName =
-            "${executor.engineConfig.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
+            "${executor.name}::${test.testSuite}::${test.projectPath}::${test.queries().joinToString("; ")}"
         val testBody = Executable {
             println("Testing $testName")
-            val t = executor.runTest(test, deadline ?: 30)
+            val t = executor.runTest(test)
             assertEquals(t.expected, t.result, "Test failed: $testName")
         }
         return dynamicTest(testName, testBody)
-    }
-
-    protected fun finalize() {
-        println("Forcefully terminating all processes")
-        engines.forEach { it.terminate() }
     }
 }

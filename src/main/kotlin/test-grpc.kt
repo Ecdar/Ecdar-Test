@@ -8,8 +8,7 @@ fun main() {
     val channel =
         ManagedChannelBuilder.forTarget(
                 "127.0.0.1:6000") // Channels are secure by default (via SSL/TLS). For the example
-            // we
-            // disable TLS to avoid
+            // we disable TLS to avoid
             // needing certificates.
             .usePlaintext()
             .build()
