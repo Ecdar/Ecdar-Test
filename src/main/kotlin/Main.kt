@@ -1,6 +1,7 @@
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser.Companion.default
+import com.google.common.collect.Lists
 import facts.RelationLoader
 import parsing.EngineConfiguration
 import parsing.Sorting
@@ -19,6 +20,9 @@ import kotlin.concurrent.thread
 import kotlin.io.path.absolutePathString
 import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
+
+val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
+
 
 fun main() {
     val time = measureTimeMillis { executeConfigurations() }
@@ -47,6 +51,18 @@ private fun executeConfigurations() {
     }
 }
 
+fun<T, R : Comparable<R>> Collection<T>.partition(size: Int, selector: (T) -> R?): List<Collection<T>> {
+    val out = (0 until size).map {java.util.ArrayList<T>()}
+    var i = 0
+
+    this.sortedBy(selector).forEach { t ->
+        out[i].add(t)
+        i = if (i >= size-1) 0 else i+1
+    }
+
+    return out
+}
+
 private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     val engineResults = ResultContext(engine.name, engine.version, ConcurrentLinkedQueue())
     val numTests = tests.size
@@ -55,28 +71,20 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     println()
     println("Running $numTests tests on engine \"${engine.name}\"")
 
-    val executor = Executor(engine)
+    val parTests = tests.partition(engine.processes) { t ->
+        t.queries().sumOf { q ->
+            q.occurrences(operators)
+        }
+    }
+
+    val executorTestPair: List<Pair<Executor, Collection<Test>>> =
+        (0 until engine.processes).map {
+            Pair(Executor(engine, engine.addresses[it], engine.port+it), parTests[it])
+        }
 
     val t = printProgressbar(progress, failedTests, numTests)
-
     val time = measureTimeMillis {
-        tests.parallelStream().forEach {
-
-            val testResult = executor.runTest(it, engine.deadline ?: 30)
-
-            engineResults.results.add(testResult)
-
-            progress.getAndAdd(1)
-
-            if (testResult.result != testResult.expected) {
-                if (engine.verbose == true) {
-                    print("\r") // Replace the progress bar
-                    printTestResult(testResult)
-                }
-                failedTests.getAndAdd(1)
-            }
-        }
-        engine.terminate()
+        executorTestPair.parallelStream().forEach { (executor, tests) -> executor.execute(tests, engineResults.results, progress, failedTests) }
     }
 
     t.join()
@@ -101,19 +109,14 @@ private fun executeTests(engine: EngineConfiguration, tests: Collection<Test>) {
     saveResults(engineResults)
 }
 
-private fun generateTests(): Collection<Test> {
-    val allRelations = ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations)
-    //ProofLimiter(3).limit(allRelations)
-    return TestGenerator().addAllTests().generateTests(allRelations)
-}
+private fun generateTests(): Collection<Test> =
+    TestGenerator().addAllTests().generateTests(ProofSearcher().addAllProofs().findNewRelations(RelationLoader.relations))
+
 
 private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Collection<Test> {
-    val operators = listOf("||", "\\\\", "&&", "consistency:", "refinement:")
     var out = ArrayList(tests)
 
-    if (engine.queryComplexity != null) { //Query Complexity
-        val (lower, upper) = engine.bounds()
-
+    engine.bounds()?.let { (lower, upper) -> //Query Complexity
         out = ArrayList(out.filter { x ->
             x.queries().all { y ->
                 y.occurrences(operators) in lower..upper
@@ -121,24 +124,18 @@ private fun sortTests(engine: EngineConfiguration, tests: Collection<Test>) : Co
         })
     }
 
-    if (engine.testCount != null) {  //Count
-        out = when (engine.testSorting) {
-            Sorting.FILO -> ArrayList(out.takeLast(engine.testCount))
-            Sorting.FIFO -> ArrayList(out.take(engine.testCount))
-            Sorting.RoundRobin -> getEqualTests(out, engine.testCount)
-            Sorting.Random, null -> ArrayList(out.shuffled().take(engine.testCount))
+    return engine.testCount?.let { count -> //Count
+        when (engine.testSorting) {
+            Sorting.FILO -> out.takeLast(count)
+            Sorting.FIFO -> out.take(count)
+            Sorting.RoundRobin -> getEqualTests(out, count)
+            Sorting.Random, null -> out.shuffled().take(count)
         }
-    }
-    return out
+    } ?: out
 }
 
-private fun String.occurrences(strings: Collection<String>): Int {
-    var count = 0
-    for (string in strings) {
-        count += this.occurrences(string)
-    }
-    return count
-}
+private fun String.occurrences(strings: Collection<String>): Int =
+    strings.sumOf { this.occurrences(it) }
 
 private fun String.occurrences(string: String): Int
     = this.windowed(string.length).count { it == string }
@@ -147,13 +144,10 @@ private fun getEqualTests(tests: Collection<Test>, count: Int): ArrayList<Test> 
     val map: HashMap<Pair<String, String>, ArrayList<Test>> = HashMap()
     tests.forEach { x -> map.getOrPut(Pair(x.type, x.testSuite)) { ArrayList() }.add(x) }
 
-    val out = ArrayList<Test>()
-    if (map.keys.size == 0)
-        return out
-    for (test in map.values.toList()) {
-        out.addAll(test.take(count / map.keys.size))
-    }
-    return out
+    return if (map.keys.size == 0)
+        Lists.newArrayList()
+    else
+        ArrayList(map.values.flatMap { it.take(count / map.keys.size)})
 }
 
 private fun saveTests(engineName: String, path: String, tests: Collection<Test>) {
@@ -232,6 +226,3 @@ private fun writeToNewFile(filePath: String, text: String) {
     file.createNewFile()
     file.writeText(text)
 }
-
-
-

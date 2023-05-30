@@ -1,9 +1,7 @@
 import EcdarProtoBuf.ComponentProtos
 import EcdarProtoBuf.EcdarBackendGrpc
 import EcdarProtoBuf.QueryProtos
-import io.grpc.StatusRuntimeException
 import io.grpc.ManagedChannelBuilder
-import io.grpc.Status
 import parsing.EngineConfiguration
 import tests.MultiTest
 import tests.SingleTest
@@ -11,83 +9,85 @@ import tests.Test
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantLock
 import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
+import io.grpc.StatusRuntimeException
+import java.net.ServerSocket
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
-class Executor(val engineConfig: EngineConfiguration) {
+class Executor(engine: EngineConfiguration, address: String, private var port: Int) {
+    val name = engine.name
+    private var queryId = AtomicInteger(0)
+    private var proc: Process? = null
+    private val stub = EcdarBackendGrpc.newBlockingStub(ManagedChannelBuilder.forTarget(address).usePlaintext().build())
+
+    private val deadline: Long = engine.deadline
+    private val settings: QueryProtos.QueryRequest.Settings = engine.settings
+    private val verbose = engine.verbose ?: true
+    private val path = engine.path!!
+    private var expr = engine.parameterExpression!!
+    private val ip = engine.ip
 
     init {
-        engineConfig.initialize()
-    }
-    private val numProcesses = engineConfig.processes
-
-    private val channels = engineConfig.addresses.map {
-        ManagedChannelBuilder.forTarget(it).usePlaintext().build()
+        initialize()
     }
 
-    private val stubs = channels.map { EcdarBackendGrpc.newBlockingStub(it) }
-    var queryId = AtomicInteger(0)
-    private var usedStubs = (0 until numProcesses).map { ReentrantLock() }
+    fun execute(tests: Collection<Test>, results: ConcurrentLinkedQueue<TestResult>,
+                progress: AtomicInteger, failedTests: AtomicInteger) {
+        tests.forEach {
 
-    fun runTest(test: Test, deadline: Long): TestResult {
+            val testResult = runTest(it)
+
+            results.add(testResult)
+
+            progress.getAndAdd(1)
+
+            if (testResult.result != testResult.expected) {
+                if (verbose) {
+                    print("\r") // Replace the progress bar
+                    printTestResult(testResult)
+                }
+                failedTests.getAndAdd(1)
+            }
+        }
+        terminate()
+    }
+
+    private inline fun<T> List<T>.sumOf(selector: (T) -> Double?): Double? =
+        this.map { selector.invoke(it) ?: return null }.sum()
+
+    fun runTest(test: Test): TestResult {
         try {
             if (test is MultiTest) {
-                val resses = test.tests.map { runTest(it, deadline) }
+                val resses = test.tests.map { runTest(it) }
                 val res = test.getResult(resses)
-                var time: Double? = 0.0
-                resses.forEach {
-                    if (it.time == null) {
-                        time = null
-                        return@forEach
-                    } else {
-                        time = time?.plus(it.time!!)
-                    }
-                }
-                res.time = time
+                res.time = resses.sumOf { it.time }
                 return res
             } else if (test is SingleTest) {
-
+                //lock()
                 val queryId = queryId.getAndAdd(1)
-                var stubId = 0
-
                 val success: ResultCase?
-
-                while (!usedStubs[stubId].tryLock()) {
-                    stubId += 1
-
-                    //Sleep for a bit when we've tried all stubs
-                    if (stubId >= numProcesses) {
-                        Thread.sleep(100)
-                        stubId = 0
-                    }
-                }
                 val start = System.currentTimeMillis()
-
-                try {
-                    val componentUpdate = componentUpdateFromPath(test.projectPath)
-                    val settings = engineConfig.settings
                     val query = QueryProtos.QueryRequest.newBuilder()
                             .setQueryId(queryId)
                             .setQuery(test.query)
-                            .setComponentsInfo(componentUpdate)
+                            .setComponentsInfo(componentUpdateFromPath(test.projectPath))
                             .setSettings(settings)
                             .build()
 
                     val result = try {
-                        stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
+                        sendQuery(query)
                     }
                     catch (e: StatusRuntimeException) {
-                        if (e.status.code == Status.Code.UNAVAILABLE) {
-                            resetStub(stubId)
-                            stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
-                        } else {
+                        if (e.status.code == io.grpc.Status.Code.UNAVAILABLE) {
+                            resetStub()
+                            sendQuery(query)
+                        } else
                             throw e
-                        }
-                    }
-                    catch (e: IOException) {
-                        resetStub(stubId)
-                        stubs[stubId].withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(query)
+                    } catch (e: IOException) {
+                        resetStub()
+                        sendQuery(query)
                     }
 
                     success = when (val r = result.resultCase) {
@@ -99,10 +99,7 @@ class Executor(val engineConfig: EngineConfiguration) {
                             throw Exception("Query: ${test.query} in ${test.projectPath} could not produce result. Error: ${result.error}")
                         else -> r
                     }
-                }
-                finally {
-                    usedStubs[stubId].unlock()
-                }
+
 
                 val res = test.getResult(success!!)
                 res.time = (System.currentTimeMillis() - start).toDouble()
@@ -118,21 +115,56 @@ class Executor(val engineConfig: EngineConfiguration) {
         throw Exception("Cannot execute test of type ${test.javaClass.name}")
     }
 
-    private fun resetStub(stubId: Int) {
-        engineConfig.reset(stubId)
+    private fun sendQuery(q: QueryProtos.QueryRequest): QueryProtos.QueryResponse =
+        stub.withDeadlineAfter(deadline, TimeUnit.SECONDS).sendQuery(q)
+
+    private fun initialize() {
+        fun isLocalPortFree(port: Int) =
+            try {
+                ServerSocket(port).close()
+                true
+            } catch (e: IOException) {
+                false
+            }
+
+        var p = port
+        while(!isLocalPortFree(p))
+            p++
+
+        proc = ProcessBuilder(
+            path,
+            expr.replace("{port}", p.toString())
+                .replace("{ip}", ip)
+        )
+            //.redirectOutput(ProcessBuilder.Redirect.appendTo(File("Engine-$name-log.txt")))
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .directory(File(path).parentFile)
+            .start()
+        port = p
+    }
+
+    private fun resetStub() {
+        proc!!.destroy()
+        initialize()
+    }
+
+    fun terminate() {
+        proc!!.destroy()
     }
 
     private fun componentUpdateFromPath(path: String): ComponentProtos.ComponentsInfo {
         val file = File(path)
         return if (File(path).isFile) { //If XML
             val component = ComponentProtos.Component.newBuilder().setXml(file.readText()).build()
-          //  QueryProtos.ComponentsUpdateRequest.newBuilder().addComponents(component).build()
-            ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).setComponentsHash(component.hashCode()).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addComponents(component).setComponentsHash(component.hashCode())
+                .build()
         } else { //If json (e.g directory)
             val localFile = File(path.plus("/Components"))
             val components = localFile.listFiles()!!//.filter { it.endsWith(".json") }
                 .map { ComponentProtos.Component.newBuilder().setJson(it.readText()).build() }
-            ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components).setComponentsHash(components.hashCode()).build()
+            ComponentProtos.ComponentsInfo.newBuilder().addAllComponents(components)
+                .setComponentsHash(components.hashCode()).build()
         }
     }
 }
