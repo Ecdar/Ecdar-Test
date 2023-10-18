@@ -1,4 +1,3 @@
 [submodule "src/main/Ecdar-ProtoBuf"]
 	path = src/main/Ecdar-ProtoBuf
-	url = git@github.com:Ecdar/Ecdar-ProtoBuf.git
-    branch = futureproof1
+	url = https://github.com/ECDAR-AAU-SW-P5/Ecdar-ProtoBuf.git
