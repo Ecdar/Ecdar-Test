@@ -15,7 +15,7 @@ data class EngineConfiguration(
     val name: String,
     val version: String,
     @Json(name = "executablePath", serializeNull = false) val path: String?,
-    @Json(serializeNull = false) val parameterExpression: String?,
+    @Json(serializeNull = false) val parameterExpression: Array<String>?,
     val ip: String,
     val port: Int,
     @Json(serializeNull = false) val verbose: Boolean?,

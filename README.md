@@ -1,47 +1,31 @@
 ﻿# Ecdar-test
 The test framework for automatic test case generation for Ecdar engines.
 
-Requires a configuration file `configuration.json` with information for each engine executable: 
+Clone with `git clone --recurse-submodules https://github.com/Ecdar/Ecdar-Test.git` or if you have already cloned use `git submodule update --init --recursive`
+Runs on JDK 11 Temurin
+
+Requires a configuration file `configuration.json` with information for each engine executable: (Also see [full config](#full-configuration-file))
 ```json
 [
-    {
-        "name": "Reveaal",
-        "version": "Main",
-        "executablePath": "path/to/Reveaal.exe",
-        "parameterExpression" : "-p={ip}:{port}",
-        "ip": "127.0.0.1",
-        "port" : 7000,
-        "processes" : 8,
-        "enabled" : true,
-        "verbose": true,
-        "testTimeout": 30,
-        "testCount" : 4000,        
-        "testSorting": "Random",
-        "queryComplexity": [0, 1000],
-        "testsSavePath": "/path/to/file",
-        "gRPCSettings": {
-          "disable-clock-reduction": true
-        }
-    },
-    {
-        "name": "J-Ecdar",
-        "version": "UCDD",
-        "executablePath": "path/to/j-Ecdar.bat",
-        "parameterExpression" : "-p={ip}:{port}",
-        "ip": "127.0.0.1",
-        "port" : 8000,
-        "processes" : 8,
-        "enabled" : false
-    },
-    {
-        "name": "External",
-        "version": "v1.0",
-        "ip": "127.0.0.1",
-        "port" : 9000,
-        "processes" : 1,
-        "enabled" : false
+  {
+    "name": "Reveaal",
+    "version": "Main",
+    "executablePath": "path/to/Reveaal/target/release/reveaal",
+    "parameterExpression" : ["serve","{ip}:{port}"],
+    "ip": "127.0.0.1",
+    "port" : 7000,
+    "processes" : 8,
+    "enabled" : true,
+    "verbose": true,
+    "testTimeout": 500,
+    "testCount" : 4000,
+    "testSorting": "Random",
+    "queryComplexity": [0, 1000],
+    "gRPCSettings": {
+      "disable-clock-reduction": true
     }
- ]
+  }
+]
 ```
 If an `executablePath` or `parameterExpression` is omitted, the engine is expected to be hosted externally. An example of this is the `External` engine in the above configuration. Engines can optionally be marked `verbose` to print failed queries while the tests are run from [Run Tests for Engine](#run-tests-for-engine)
 
@@ -62,7 +46,7 @@ If the array is empty, no bound is set.
 `testsSavePath` determines if and where in the filesystem to save the text-file with the queries being generated. If not set, the queries will not be saved on disk.
 `gRPCSettings` is the settings that are sent to the engine through gRPC. The settings can be found in the [protobuf](https://github.com/Ecdar/Ecdar-ProtoBuf).
 ## Run Tests for Engine
-Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt). Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
+Run all tests on enabled engines from `main()` in [Main.kt](src/main/kotlin/Main.kt) *(Click me in your IDE)*. Test results are stored in `results/ENGINE_NAME/ENGINE_VERSION/RUN_NUMBER`. Run numbering is used so new results on same engine and version do not override previous results.
 ```
 Found 5730 tests
 
@@ -94,3 +78,46 @@ Plots can optionally have log scale axes, as the ones seen below.
 ![Line Plot](https://i.imgur.com/dsKycFL.png "Line Plot")
 ### Density Plots
 ![Density Plot](https://i.imgur.com/PAl3BdX.png "Density Plot")
+
+### Full configuration file
+```json
+[
+    {
+        "name": "Reveaal",
+        "version": "Main",
+        "executablePath": "path/to/Reveaal.exe",
+        "parameterExpression" : ["serve","{ip}:{port}"],
+        "ip": "127.0.0.1",
+        "port" : 7000,
+        "processes" : 8,
+        "enabled" : true,
+        "verbose": true,
+        "testTimeout": 30,
+        "testCount" : 4000,        
+        "testSorting": "Random",
+        "queryComplexity": [0, 1000],
+        "testsSavePath": "/path/to/file",
+        "gRPCSettings": {
+          "disable-clock-reduction": true
+        }
+    },
+    {
+        "name": "J-Ecdar",
+        "version": "UCDD",
+        "executablePath": "path/to/j-Ecdar.bat",
+        "parameterExpression" : ["-p={ip}:{port}"],
+        "ip": "127.0.0.1",
+        "port" : 8000,
+        "processes" : 8,
+        "enabled" : false
+    },
+    {
+        "name": "External",
+        "version": "v1.0",
+        "ip": "127.0.0.1",
+        "port" : 9000,
+        "processes" : 1,
+        "enabled" : false
+    }
+ ]
+```
