@@ -216,7 +216,7 @@ private fun saveResults(results: ResultContext) {
     path += "/$fileNumber.json"
     println("Saving results for engine '${results.engine}' in $path")
 
-    writeJsonToFile(path, results.results.map { it.result })
+    writeJsonToFile(path, results.results.toList())
 }
 
 private fun writeJsonToFile(filePath: String, results: Any) {
