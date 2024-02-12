@@ -40,7 +40,9 @@ enum class ResultType {
                 PARSING_ERROR,
                 MODEL,
                 ERROR,
+                COMPONENTSNOTINCACHE,
                 RESULT_NOT_SET -> UNSATISFIED
+                SYNTAX -> TODO()
             }
         }
     }

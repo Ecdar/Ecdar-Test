@@ -2,6 +2,7 @@ package tests
 
 import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
 import TestResult
+import com.beust.klaxon.TypeFor
 
 abstract class Test(val testSuite: String, val projectPath: String) {
     val type = this.javaClass.simpleName
@@ -20,6 +21,7 @@ abstract class Test(val testSuite: String, val projectPath: String) {
     }
 }
 
+@TypeFor(field = "type", adapter = SingleTestJsonAdapter::class)
 abstract class SingleTest(testSuite: String, projectPath: String, val query: String) :
     Test(testSuite, projectPath) {
     abstract fun getResult(success: Boolean): TestResult
