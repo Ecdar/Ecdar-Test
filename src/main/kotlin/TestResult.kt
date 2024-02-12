@@ -42,6 +42,7 @@ enum class ResultType {
                 ERROR,
                 COMPONENTSNOTINCACHE,
                 RESULT_NOT_SET -> UNSATISFIED
+                SYNTAX -> TODO()
             }
         }
     }

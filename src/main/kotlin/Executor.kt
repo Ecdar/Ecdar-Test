@@ -4,10 +4,6 @@ import EcdarProtoBuf.QueryProtos
 import EcdarProtoBuf.QueryProtos.QueryResponse.ResultCase
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusRuntimeException
-import parsing.EngineConfiguration
-import tests.MultiTest
-import tests.SingleTest
-import tests.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -16,7 +12,10 @@ import java.net.ServerSocket
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-
+import parsing.EngineConfiguration
+import tests.MultiTest
+import tests.SingleTest
+import tests.Test
 
 class Executor(engine: EngineConfiguration, address: String, private var port: Int) {
     val name = engine.name
@@ -141,25 +140,29 @@ class Executor(engine: EngineConfiguration, address: String, private var port: I
         var p = port
         while (!isLocalPortFree(p)) p++
 
-        // Supports any way of defining ips and ports anywhere in the params. Now {ip}:{port} is just as valid as
-        // -p={ip}:{port} and they can be written in any order with other params such as a new -t(threads) flag in Reveaal
+        // Supports any way of defining ips and ports anywhere in the params. Now {ip}:{port} is
+        // just as valid as
+        // -p={ip}:{port} and they can be written in any order with other params such as a new
+        // -t(threads) flag in Reveaal
         // or -i(input folder flag) in J-Ecdar
-        val currentParams = Array(params.size) {
-            params[it].replace("{ip}", ip).replace("{port}", p.toString())
-        }
+        val currentParams =
+            Array(params.size) { params[it].replace("{ip}", ip).replace("{port}", p.toString()) }
 
         proc =
-            ProcessBuilder(path,
-                *currentParams)
+            ProcessBuilder(path, *currentParams)
                 // .redirectOutput(ProcessBuilder.Redirect.appendTo(File("Engine-$name-log.txt")))
-                .redirectErrorStream(true) // wanted to just get outputstream, however outputstream is empty until the
-                // process closes. So this would work fine on  "echo hello", but won't work on starting servers in JDK 11.
+                .redirectErrorStream(
+                    true) // wanted to just get outputstream, however outputstream is empty until
+                // the
+                // process closes. So this would work fine on  "echo hello", but won't work on
+                // starting servers in JDK 11.
                 // Somehow redirecting the error output fixes the input stream
                 .directory(File(path).parentFile)
                 .start()
         port = p
 
-        val inputAndErrorStream = proc?.inputStream ?: throw Exception("Process exited unexpectedly")
+        val inputAndErrorStream =
+            proc?.inputStream ?: throw Exception("Process exited unexpectedly")
         val reader = BufferedReader(InputStreamReader(inputAndErrorStream))
         var output: String? = null
 
